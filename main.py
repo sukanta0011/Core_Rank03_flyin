@@ -1,6 +1,7 @@
 from srcs.MapParser import MapParser
 from srcs.PathFinder import DepthFirstSearch
 from srcs.Simulator import SimpleSimulator
+from srcs.GraphVisulizer import GraphVisulizer
 from srcs.helpers import (
     get_pos_obj,
     format_valid_paths_into_list,
@@ -41,8 +42,10 @@ def main():
         # sim_one.start_simulation(valid_map)
         simple_sim.show_zone_state()
         simple_sim.start_simulation(valid_map)
+    graph_visual = GraphVisulizer(map, 1000, 600)
+    graph_visual.generate_map()
 
 
 if __name__ == "__main__":
-    # main()
-    mlx_test()
+    main()
+    # mlx_test()
