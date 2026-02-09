@@ -5,6 +5,10 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "mlx",
     "prettytable>=3.17.0",
     "pydantic>=2.12.5",
 ]
+
+[tool.uv.sources]
+mlx = { path = "mlx_CLXV/mlx-2.2-py3-none-any.whl" }

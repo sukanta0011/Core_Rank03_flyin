@@ -16,14 +16,24 @@ name = "flyin"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "mlx" },
     { name = "prettytable" },
     { name = "pydantic" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "mlx", path = "mlx_CLXV/mlx-2.2-py3-none-any.whl" },
     { name = "prettytable", specifier = ">=3.17.0" },
     { name = "pydantic", specifier = ">=2.12.5" },
+]
+
+[[package]]
+name = "mlx"
+version = "2.2"
+source = { path = "mlx_CLXV/mlx-2.2-py3-none-any.whl" }
+wheels = [
+    { filename = "mlx-2.2-py3-none-any.whl", hash = "sha256:9a72de34b6b7e3f34cbe47ab8abb10b374204e658c4b5ec1c77de914db3b56cd" },
 ]
 
 [[package]]

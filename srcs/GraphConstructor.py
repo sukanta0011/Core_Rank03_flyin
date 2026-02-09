@@ -4,10 +4,10 @@ from abc import ABC
 
 
 class ZoneTypes(Enum):
-    normal = "normal"
-    blocked = "blocked"
-    restricted = "restricted"
     priority = "priority"
+    normal = "normal"
+    restricted = "restricted"
+    blocked = "blocked"
 
 
 class HubType(Enum):
@@ -28,8 +28,8 @@ class Link:
     def free(self):
         self.occupancy -= 1
 
-    def is_free(self) -> bool:
-        return self.occupancy < self.capacity
+    def free_spaces(self) -> int:
+        return self.capacity - self.occupancy
 
 
 class Zone(ABC):
@@ -43,6 +43,7 @@ class Zone(ABC):
         self.zone_type = ZoneTypes(zone_type)
         self.color = color
         self.cost = 2 if zone_type == "restricted" else 1
+        self.moves = 0
         self.links: List[Link] = []
         self.occupancy = 0
         self.is_movable = False
@@ -64,8 +65,8 @@ class Zone(ABC):
     def free(self):
         self.occupancy -= 1
 
-    def is_free(self) -> bool:
-        return self.occupancy < self.capacity
+    def free_spaces(self) -> int:
+        return self.capacity - self.occupancy
 
     def add_link(self, link: 'Zone', link_capacity: int = 1):
         self.links.append(Link(link, link_capacity))

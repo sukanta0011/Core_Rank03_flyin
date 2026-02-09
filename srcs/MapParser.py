@@ -146,7 +146,7 @@ class MapParser:
                 self._store_hub_info(line_no, hub_info_list,
                                      split_line[0], self.map_dict["hubs"])
                 self._store_hub_metadata(line_no, metadata_list,
-                                         hub_info_list[0],
+                                         hub_info_list[0], split_line[0],
                                          self.map_dict["hubs"])
             except HubError as e:
                 raise HubError(f"HubError->{e}")
@@ -190,11 +190,10 @@ class MapParser:
                                   "do not have require hub infos")
 
     def _store_hub_metadata(self, line_no: int, metadata: List | None,
-                            hub_name: str, storage: Dict):
+                            hub_name: str, hub_type: str, storage: Dict):
         # zone = "normal"
         # color = None
         # max_drones = 1
-
         if metadata is not None:
             for info in metadata:
                 try:
@@ -208,6 +207,13 @@ class MapParser:
                     if key_val[0] == "max_drones":
                         drones = int(key_val[1])
                         if drones > 0:
+                            if ("start" in hub_type or "end" in hub_type) and\
+                                drones != self.map_dict["drones"]:
+                                raise DroneOccupancyError(
+                                    f"DroneOccupancyError: ({line_no}) "
+                                    f"Max_drone({drones}) in {hub_type} has "
+                                    f"to be equal to {self.map_dict['drones']}"
+                                    )
                             storage[hub_name].update_capacity(drones)
                         else:
                             raise DroneOccupancyError(
