@@ -1,14 +1,14 @@
 from srcs.MapParser import MapParser
 from srcs.PathFinder import DepthFirstSearch
 from srcs.Simulator import SimpleSimulator
-from srcs.GraphVisulizer import GraphVisulizer
+from srcs.GraphVisualizer import GraphVisualizer
 from srcs.helpers import (
     get_pos_obj,
     format_valid_paths_into_list,
     create_valid_graph,
     sort_map_by_priority
     )
-from srcs.GraphVisulizer import mlx_test
+from srcs.GraphVisualizer import mlx_test
 
 def main():
     # file_path = "maps/easy/example_map.txt"
@@ -17,11 +17,11 @@ def main():
     # file_path = "maps/medium/03_priority_puzzle.txt"
     # file_path = "maps/hard/01_maze_nightmare.txt"
     # file_path = "maps/hard/02_capacity_hell.txt"
-    # file_path = "maps/hard/03_ultimate_challenge.txt"
+    file_path = "maps/hard/03_ultimate_challenge.txt"
     # file_path = "maps/challenger/01_the_impossible_dream.txt"
     # file_path = "maps/invalid/map1.txt"
     # file_path = "maps/challenger/01_the_impossible_dream.txt"
-    file_path = "maps/my_maps/priority_map1.txt"
+    # file_path = "maps/my_maps/priority_map1.txt"
     map_parser = MapParser()
     map_parser.parse(file_path)
     # map_parser.show_map()
@@ -42,8 +42,8 @@ def main():
         # sim_one.start_simulation(valid_map)
         simple_sim.show_zone_state()
         simple_sim.start_simulation(valid_map)
-    graph_visual = GraphVisulizer(map, 1000, 600)
-    graph_visual.generate_map()
+    graph_visual = GraphVisualizer(map, 1600, 900)
+    graph_visual.generate_map(valid_map)
 
 
 if __name__ == "__main__":

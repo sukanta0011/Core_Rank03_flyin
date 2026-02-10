@@ -8,6 +8,7 @@ dependencies = [
     "mlx",
     "prettytable>=3.17.0",
     "pydantic>=2.12.5",
+    "webcolors>=25.10.0",
 ]
 
 [tool.uv.sources]
