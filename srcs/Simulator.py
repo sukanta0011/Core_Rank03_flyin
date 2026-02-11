@@ -78,13 +78,13 @@ class SimpleSimulator(Simulator):
         move_counter = 0
         while (self.end.occupancy < len(self.drones)):
             # self.show_zone_state()
-            time.sleep(1)
-            drone_move = self._move(valid_map)
+            # time.sleep(1)
+            drone_move = self.next_move(valid_map)
             print(drone_move)
             move_counter += 1
         print(f"Total Moves: {move_counter}")
 
-    def _move(self, valid_map: Dict[str, List]) -> str:
+    def next_move(self, valid_map: Dict[str, List]) -> str:
         drone_move = ""
         for drone in self.drones:
             # print(valid_map[drone.pos.name])
@@ -124,6 +124,3 @@ class SimpleSimulator(Simulator):
                             drone_move += f"{drone.name}-{drone.pos.name}"\
                                             f"-{link.target.name} "
         return drone_move
-
-class SimulatorManager:
-    pass

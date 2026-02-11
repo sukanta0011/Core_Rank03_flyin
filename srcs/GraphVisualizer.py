@@ -1,5 +1,6 @@
 from typing import Tuple, Dict, List
 import math
+import time
 from mlx import Mlx
 from webcolors import name_to_hex
 from srcs.GraphConstructor import Zone
@@ -21,6 +22,16 @@ def mykey(keynum, mlx_var):
     # print(mystuff)
     if keynum == 32:
         mlx_var.mlx.mlx_mouse_hook(mlx_var.win_ptr, None, None)
+    if keynum == 99:
+        redraw(mlx_var)
+    if keynum == 65293:
+        print("Next Move")
+        # redraw(mlx_var)
+
+
+def redraw(mlx_var: MlxVar):
+    mlx_var.mlx.mlx_clear_window(mlx_var.mlx_ptr, mlx_var.win_ptr)
+    mlx_var.mlx.mlx_string_put(mlx_var.mlx_ptr, mlx_var.win_ptr, 10, 10, 255, "Hello PyMlx!")
 
 
 def gere_close(mlx_var):
@@ -59,11 +70,11 @@ def draw_line(mlx_var: MlxVar, coordinate: Tuple,
     if direction == "v":
         for i in range(x, x + len):
             mlx_var.mlx.mlx_pixel_put(mlx_var.mlx_ptr,
-                                    mlx_var.win_ptr, i, y, color)
+                                      mlx_var.win_ptr, i, y, color)
     elif direction == "h":
         for i in range(y, y + len):
             mlx_var.mlx.mlx_pixel_put(mlx_var.mlx_ptr,
-                                    mlx_var.win_ptr, x, i, color)
+                                      mlx_var.win_ptr, x, i, color)
     else:
         print(f"Unknown direction: {direction}. "
               "Allowed directions are 'v' and 'h'")
@@ -123,11 +134,13 @@ def connect_two_square(
 
 
 class GraphVisualizer:
-    def __init__(self, graph: Dict[str, Zone], w: int, h: int):
+    def __init__(self, graph: Dict[str, Zone], w: int, h: int,
+                 valid_paths: Dict[str, List]):
         self.graph = graph
         self.w = w
         self.h = h
         self.mlx = MlxVar()
+        self.valid_paths = valid_paths
         self.init_mlx()
 
     def init_mlx(self):
@@ -136,8 +149,20 @@ class GraphVisualizer:
         self.mlx.win_ptr = self.mlx.mlx.mlx_new_window(self.mlx.mlx_ptr, self.w, self.h, "Fly IN")
         self.mlx.mlx.mlx_clear_window(self.mlx.mlx_ptr, self.mlx.win_ptr)
         self.mlx.mlx.mlx_mouse_hook(self.mlx.win_ptr, mymouse, self.mlx)
-        self.mlx.mlx.mlx_key_hook(self.mlx.win_ptr, mykey, self.mlx)
+        self.mlx.mlx.mlx_key_hook(self.mlx.win_ptr, self.mykey, self.mlx)
         self.mlx.mlx.mlx_hook(self.mlx.win_ptr, 33, 0, gere_close, self.mlx)
+
+    def mykey(self, keynum, mlx_var):
+        # print(f"Got key {keynum}, and got my stuff back:")
+        if keynum == 32:
+            mlx_var.mlx.mlx_mouse_hook(mlx_var.win_ptr, None, None)
+        if keynum == 65293:
+            print("Next Move")
+            self.redraw()
+
+    def redraw(self):
+        self.mlx.mlx.mlx_clear_window(self.mlx.mlx_ptr, self.mlx.win_ptr)
+        self.generate_map(self.valid_paths)
 
     def start_mlx(self):
         self.mlx.mlx.mlx_loop(self.mlx.mlx_ptr)
@@ -161,8 +186,8 @@ class GraphVisualizer:
                 self.put_image(x, yn, offset)
 
     def draw_all_zones(self, mlx_var: MlxVar, center: Tuple, len: int,
-                             name: str, color: hex = 0xFFFFFFFF,
-                             num: int = 1) -> None:
+                       name: str, color: hex = 0xFFFFFFFF,
+                       num: int = 1) -> None:
         x, y = center
         yp = yn = y
         for i in range(num):
@@ -189,7 +214,7 @@ class GraphVisualizer:
             self.mlx.img, _, _ = result
         except Exception as e:
             print(f"Error: Unable to open image, {e}")
-    
+
     def print_link_capacity(self, cord1: Tuple[int, int],
                             cord2: Tuple[int, int], capacity: int):
         xi, xf = cord1
@@ -256,7 +281,6 @@ class GraphVisualizer:
                     connect_two_square(
                         self.mlx, (xi, yi), (xf, yf), sq_len,
                         rgb_to_hex(r=255))
-
         self.start_mlx()
 
 
@@ -283,7 +307,8 @@ def mlx_test():
     connect_two_square(mlx_var, (250, 150), (450, 300), 20)
     result = mlx_var.mlx.mlx_xpm_file_to_image(mlx_var.mlx_ptr, "images/drone1.xpm")
     mlx_var.img, _, _ = result
-    mlx_var.mlx.mlx_put_image_to_window(mlx_var.mlx_ptr, mlx_var.win_ptr, mlx_var.img, 100, 100)
+    mlx_var.mlx.mlx_put_image_to_window(mlx_var.mlx_ptr, mlx_var.win_ptr,
+                                        mlx_var.img, 100, 100)
     # draw_square(mlx_var, (100, 200), 40)
     # draw_square(mlx_var, (300, 100), 40)
     # connect_two_square(mlx_var, (100, 200), (300, 100), 40)

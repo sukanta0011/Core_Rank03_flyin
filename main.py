@@ -2,6 +2,7 @@ from srcs.MapParser import MapParser
 from srcs.PathFinder import DepthFirstSearch
 from srcs.Simulator import SimpleSimulator
 from srcs.GraphVisualizer import GraphVisualizer
+from srcs.Manager import VisualSimulationManager
 from srcs.helpers import (
     get_pos_obj,
     format_valid_paths_into_list,
@@ -9,6 +10,7 @@ from srcs.helpers import (
     sort_map_by_priority
     )
 from srcs.GraphVisualizer import mlx_test
+
 
 def main():
     # file_path = "maps/easy/example_map.txt"
@@ -39,13 +41,13 @@ def main():
         #     print(path)
         simple_sim = SimpleSimulator(graph=map, valid_paths=paths,
                                      drones=drones)
-        # sim_one.start_simulation(valid_map)
-        # graph_visual = GraphVisualizer(map, 800, 900)
-        # graph_visual.add_xmp_image("images/drone1.xpm")
+        graph_visual = GraphVisualizer(map, 800, 900, valid_map)
+        graph_visual.add_xmp_image("images/drone1.xpm")
+        manager = VisualSimulationManager(simple_sim, graph_visual, valid_map)
+        manager.play()
         # graph_visual.generate_map(valid_map)
-        simple_sim.show_zone_state()
-        simple_sim.start_simulation(valid_map)
-    
+        # simple_sim.show_zone_state()
+        # simple_sim.start_simulation(valid_map)
 
 
 if __name__ == "__main__":
