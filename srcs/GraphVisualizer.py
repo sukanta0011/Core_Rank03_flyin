@@ -9,6 +9,7 @@ class MlxVar:
         self.mlx = None
         self.mlx_ptr = None
         self.win_ptr = None
+        self.img = None
 
 
 def mymouse(button, x, y, mystuff):
@@ -77,9 +78,9 @@ def draw_square(mlx_var: MlxVar, center: Tuple,
     draw_line(mlx_var, (x - len // 2, y - len // 2), len, "h", color)
 
 
-def connect_two_square(mlx_var: MlxVar, cen1: Tuple,
-                       cen2: Tuple, len: int,
-                       color: hex = 0xFFFFFFFF):
+def connect_two_square(
+        mlx_var: MlxVar, cen1: Tuple,
+        cen2: Tuple, len: int, color: hex = 0xFFFFFFFF):
     if cen1[0] > cen2[0]:
         x_max, x_min = cen1[0], cen2[0]
     else:
@@ -141,8 +142,82 @@ class GraphVisualizer:
     def start_mlx(self):
         self.mlx.mlx.mlx_loop(self.mlx.mlx_ptr)
 
+    def put_image(self, xc: int, yc: int, offset: int):
+        x = xc - offset
+        y = yc - offset
+        self.mlx.mlx.mlx_put_image_to_window(
+            self.mlx.mlx_ptr, self.mlx.win_ptr, self.mlx.img, x, y)
+
+    def fill_zone_wih_drones(self, mlx_var: MlxVar, offset: int,
+                             center: Tuple, len: int, num: int = 0) -> None:
+        x, y = center
+        yp = yn = y
+        for i in range(num):
+            if i % 2 == 0:
+                self.put_image(x, yp, offset)
+                yp += len
+            else:
+                yn -= len
+                self.put_image(x, yn, offset)
+
+    def draw_all_zones(self, mlx_var: MlxVar, center: Tuple, len: int,
+                             name: str, color: hex = 0xFFFFFFFF,
+                             num: int = 1) -> None:
+        x, y = center
+        yp = yn = y
+        for i in range(num):
+            if i % 2 == 0:
+                draw_square(mlx_var, (x, yp), len, color)
+                yp += len
+            else:
+                yn -= len
+                draw_square(mlx_var, (x, yn), len, color)
+        if y > self.h // 2:
+            mlx_var.mlx.mlx_string_put(
+                mlx_var.mlx_ptr, mlx_var.win_ptr,
+                x, yp, 255, f"{name}")
+        else:
+            mlx_var.mlx.mlx_string_put(
+                mlx_var.mlx_ptr, mlx_var.win_ptr,
+                x, yn - len - len // 2, 255, f"{name}")
+
+    def add_xmp_image(self, image_loc: str) -> None:
+        # image_loc = "images/drone1.xpm"
+        try:
+            result = self.mlx.mlx.mlx_xpm_file_to_image(
+                self.mlx.mlx_ptr, image_loc)
+            self.mlx.img, _, _ = result
+        except Exception as e:
+            print(f"Error: Unable to open image, {e}")
+    
+    def print_link_capacity(self, cord1: Tuple[int, int],
+                            cord2: Tuple[int, int], capacity: int):
+        xi, xf = cord1
+        yi, yf = cord2
+        if yf == yi:
+            x_txt = (xf + xi) // 2
+            y_txt = yf
+        elif xf == xi:
+            x_txt = xf
+            y_txt = (self.h + yf - yi) // 2
+        elif (yf - yi) / (xf - xi) >= 0:
+            x_txt = (xf + xi) // 2
+            if yi >= self.h // 2:
+                y_txt = (self.h + yf - yi) // 2
+            else:
+                y_txt = (self.h + yi - yf) // 2
+        elif (yf - yi) / (xf - xi) < 0:
+            x_txt = (xf + xi) // 2
+            if yi <= self.h // 2:
+                y_txt = (self.h + yf - yi) // 2
+            else:
+                y_txt = (self.h - yf + yi) // 2
+        self.mlx.mlx.mlx_string_put(
+            self.mlx.mlx_ptr, self.mlx.win_ptr, x_txt,
+            y_txt, 255, str(capacity))
+
     def generate_map(self, valid_paths: Dict[str, List]):
-        sq_len = 20
+        sq_len = 36
         mul = 120
         offset = 100
         for key, zone in self.graph.items():
@@ -153,13 +228,18 @@ class GraphVisualizer:
             if zone.color is not None:
                 hex_str = color_name_to_code(zone.color)
                 color = 0xFF000000 | int(hex_str[1:], 16)
-            draw_square(self.mlx, (xi, yi), sq_len, color)
+            self.draw_all_zones(self.mlx, (xi, yi), sq_len,
+                                zone.name, color, zone.capacity)
+            self.fill_zone_wih_drones(self.mlx, sq_len // 2, (xi, yi),
+                                      sq_len, zone.occupancy)
             valid_links = valid_paths[key]
-
+            # print(zone.name, xi, yi, self.h // 2)
             for link in zone.links:
                 coord = link.target.coordinates
                 xf = coord[0] * mul + offset
                 yf = coord[1] * mul + self.h // 2
+                # print(zone.name, link.target.name, xi, xf, yi, yf)
+                self.print_link_capacity((xi, xf), (yi, yf), link.capacity)
                 if link.target.name in valid_links:
                     if link.target.zone_type.value == "priority":
                         connect_two_square(
@@ -201,6 +281,9 @@ def mlx_test():
     draw_square(mlx_var, (250, 150), 20)
     draw_square(mlx_var, (450, 300), 20)
     connect_two_square(mlx_var, (250, 150), (450, 300), 20)
+    result = mlx_var.mlx.mlx_xpm_file_to_image(mlx_var.mlx_ptr, "images/drone1.xpm")
+    mlx_var.img, _, _ = result
+    mlx_var.mlx.mlx_put_image_to_window(mlx_var.mlx_ptr, mlx_var.win_ptr, mlx_var.img, 100, 100)
     # draw_square(mlx_var, (100, 200), 40)
     # draw_square(mlx_var, (300, 100), 40)
     # connect_two_square(mlx_var, (100, 200), (300, 100), 40)

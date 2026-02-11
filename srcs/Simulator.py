@@ -77,48 +77,53 @@ class SimpleSimulator(Simulator):
     def start_simulation(self, valid_map: Dict[str, List]):
         move_counter = 0
         while (self.end.occupancy < len(self.drones)):
-            drone_move = ""
-            for drone in self.drones:
-                # print(valid_map[drone.pos.name])
-                for hub_name in valid_map[drone.pos.name]:
-                    link = self.get_link_obj(hub_name, drone.pos.links)
-                    # print(drone.name, link.occupancy, link.target.name)
-                    if link is not None:
-                        if drone.get_link() is not None:
-                            # print(f"{drone.name} is in transit")
-                            drone.increase_move()
-                            break
-                        elif link.free_spaces() > 0:
-                            if link.free_spaces() <= link.target.free_spaces():
-                                link.populate()
-                                drone.pos.free()
-                                drone.increase_move()
-                                drone.set_link(link)
-                                break
-
-            for drone in self.drones:
-                for link in drone.pos.links:
-                    # if link.occupancy > 0 and link.target.zone_type.value == "restricted" and\
-                    if link.occupancy > 0 and drone.get_link() is not None:
-                        if link.target.name == drone.get_link().target.name:
-                            # print(f"{drone.name}, {link.target.name}, Cost: {link.target.cost}, Move: {drone.moves}")
-                            if (link.target.cost - drone.moves) == 0:
-                                drone.reset_move()
-                                # print(f"{drone.name} is in restricted zone")
-                                link.free()
-                                link.target.populate()
-                                drone.set_link(None)
-                                drone.update_pos(link.target)
-                                drone_move += f"{drone.name}-{drone.pos.name} "
-                            # break
-                            else:
-                                # print(f"{drone.name} is in restricted zone, {drone.link.target.name}")
-                                drone_move += f"{drone.name}-{drone.pos.name}"\
-                                              f"-{link.target.name} "
-            self.show_zone_state()
+            # self.show_zone_state()
+            time.sleep(1)
+            drone_move = self._move(valid_map)
             print(drone_move)
             move_counter += 1
         print(f"Total Moves: {move_counter}")
+
+    def _move(self, valid_map: Dict[str, List]) -> str:
+        drone_move = ""
+        for drone in self.drones:
+            # print(valid_map[drone.pos.name])
+            for hub_name in valid_map[drone.pos.name]:
+                link = self.get_link_obj(hub_name, drone.pos.links)
+                # print(drone.name, link.occupancy, link.target.name)
+                if link is not None:
+                    if drone.get_link() is not None:
+                        # print(f"{drone.name} is in transit")
+                        drone.increase_move()
+                        break
+                    elif link.free_spaces() > 0:
+                        if link.free_spaces() <= link.target.free_spaces():
+                            link.populate()
+                            drone.pos.free()
+                            drone.increase_move()
+                            drone.set_link(link)
+                            break
+
+        for drone in self.drones:
+            for link in drone.pos.links:
+                # if link.occupancy > 0 and link.target.zone_type.value == "restricted" and\
+                if link.occupancy > 0 and drone.get_link() is not None:
+                    if link.target.name == drone.get_link().target.name:
+                        # print(f"{drone.name}, {link.target.name}, Cost: {link.target.cost}, Move: {drone.moves}")
+                        if (link.target.cost - drone.moves) == 0:
+                            drone.reset_move()
+                            # print(f"{drone.name} is in restricted zone")
+                            link.free()
+                            link.target.populate()
+                            drone.set_link(None)
+                            drone.update_pos(link.target)
+                            drone_move += f"{drone.name}-{drone.pos.name} "
+                        # break
+                        else:
+                            # print(f"{drone.name} is in restricted zone, {drone.link.target.name}")
+                            drone_move += f"{drone.name}-{drone.pos.name}"\
+                                            f"-{link.target.name} "
+        return drone_move
 
 class SimulatorManager:
     pass
