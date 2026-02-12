@@ -19,11 +19,11 @@ def main():
     # file_path = "maps/medium/03_priority_puzzle.txt"
     # file_path = "maps/hard/01_maze_nightmare.txt"
     # file_path = "maps/hard/02_capacity_hell.txt"
-    # file_path = "maps/hard/03_ultimate_challenge.txt"
+    file_path = "maps/hard/03_ultimate_challenge.txt"
     # file_path = "maps/challenger/01_the_impossible_dream.txt"
     # file_path = "maps/invalid/map1.txt"
     # file_path = "maps/challenger/01_the_impossible_dream.txt"
-    file_path = "maps/my_maps/priority_map1.txt"
+    # file_path = "maps/my_maps/priority_map1.txt"
     map_parser = MapParser()
     map_parser.parse(file_path)
     # map_parser.show_map()
@@ -41,10 +41,12 @@ def main():
         #     print(path)
         simple_sim = SimpleSimulator(graph=map, valid_paths=paths,
                                      drones=drones)
-        graph_visual = GraphVisualizer(map, 800, 900, valid_map)
+        graph_visual = GraphVisualizer(map, 1800, 900, valid_map, simple_sim)
         graph_visual.add_xmp_image("images/drone1.xpm")
-        manager = VisualSimulationManager(simple_sim, graph_visual, valid_map)
-        manager.play()
+        graph_visual.generate_map(valid_map)
+        graph_visual.start_mlx()
+        # manager = VisualSimulationManager(simple_sim, graph_visual, valid_map)
+        # manager.play()
         # graph_visual.generate_map(valid_map)
         # simple_sim.show_zone_state()
         # simple_sim.start_simulation(valid_map)

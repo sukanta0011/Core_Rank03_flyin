@@ -61,6 +61,10 @@ class Simulator(ABC):
     def start_simulation(self, valid_map: Dict[str, List]):
         pass
 
+    @abstractmethod
+    def next_move(self, valid_map: Dict[str, List]) -> str:
+        pass
+
 
 # D1-Junction, D2-Junction
 # D1-path_b, D2-path_a, D3-Junction

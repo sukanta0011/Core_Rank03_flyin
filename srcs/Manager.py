@@ -16,6 +16,10 @@ class VisualSimulationManager:
 
     def play(self):
         self.visualizer.generate_map(self.valid_paths)
-        for i in range(4):
-            self.simulator.next_move(self.valid_paths)
+        drone = "started"
+        while True:
+            drone = self.simulator.next_move(self.valid_paths)
+            print(drone)
+            if (len(drone) != 0):
+                break
             self.visualizer.generate_map(self.valid_paths)

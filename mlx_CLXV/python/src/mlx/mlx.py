@@ -16,7 +16,7 @@ class Mlx:
     self._python_ref_std = {}
     self._python_ref_gen = {}
     self._img_height = {}
-    
+
 # Initialisation
   def mlx_init(self):
     self.mlx_func.mlx_init.restype = c_void_p

@@ -1,9 +1,10 @@
 from typing import Tuple, Dict, List
 import math
-import time
 from mlx import Mlx
 from webcolors import name_to_hex
 from srcs.GraphConstructor import Zone
+from srcs.Simulator import Simulator
+
 
 class MlxVar:
     def __init__(self) -> None:
@@ -135,12 +136,13 @@ def connect_two_square(
 
 class GraphVisualizer:
     def __init__(self, graph: Dict[str, Zone], w: int, h: int,
-                 valid_paths: Dict[str, List]):
+                 valid_paths: Dict[str, List], simulator: Simulator):
         self.graph = graph
         self.w = w
         self.h = h
         self.mlx = MlxVar()
         self.valid_paths = valid_paths
+        self.simulator = simulator
         self.init_mlx()
 
     def init_mlx(self):
@@ -157,15 +159,14 @@ class GraphVisualizer:
         if keynum == 32:
             mlx_var.mlx.mlx_mouse_hook(mlx_var.win_ptr, None, None)
         if keynum == 65293:
-            print("Next Move")
-            self.redraw()
-
-    def redraw(self):
-        self.mlx.mlx.mlx_clear_window(self.mlx.mlx_ptr, self.mlx.win_ptr)
-        self.generate_map(self.valid_paths)
+            # print("Next Move")
+            self.update_map(self.simulator)
 
     def start_mlx(self):
         self.mlx.mlx.mlx_loop(self.mlx.mlx_ptr)
+
+    def stop_mlx(self):
+        self.mlx.mlx.mlx_loop_exit(self.mlx.mlx_ptr)
 
     def put_image(self, xc: int, yc: int, offset: int):
         x = xc - offset
@@ -281,7 +282,32 @@ class GraphVisualizer:
                     connect_two_square(
                         self.mlx, (xi, yi), (xf, yf), sq_len,
                         rgb_to_hex(r=255))
-        self.start_mlx()
+        # self.start_mlx()
+
+    def clear_drones(self):
+        sq_len = 36
+        mul = 120
+        offset = 100
+        for key, zone in self.graph.items():
+            coord = zone.coordinates
+            color = 0xFF000000
+            xi = coord[0] * mul + offset
+            yi = coord[1] * mul + self.h // 2
+            
+
+    def update_map(self, simulator: Simulator):
+        self.mlx.mlx.mlx_clear_window(self.mlx.mlx_ptr, self.mlx.win_ptr)
+        # for i in range(1800):
+        #     for j in range(900):
+        #         self.mlx.mlx.mlx_pixel_put(self.mlx.mlx_ptr, self.mlx.win_ptr,
+        #                                i, j, 0xFF000000)
+        drone_movement = self.simulator.next_move(self.valid_paths)
+        if len(drone_movement) == 0:
+            print("All drones reached to the goal")
+        else:
+            print(drone_movement)
+        self.generate_map(self.valid_paths)
+        
 
 
 def mlx_test():
