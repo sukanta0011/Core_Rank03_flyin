@@ -6,6 +6,7 @@ from webcolors import name_to_hex, name_to_rgb
 from srcs.GraphConstructor import Zone
 from srcs.Simulator import Simulator
 
+
 class ImgData:
     """Structure for image data"""
     def __init__(self):
@@ -16,6 +17,7 @@ class ImgData:
         self.sl = 0  # size line
         self.bpp = 0  # bits per pixel
         self.iformat = 0
+
 
 class MlxVar:
     def __init__(self) -> None:
@@ -28,8 +30,48 @@ class MlxVar:
         self.drone_img = ImgData()
         self.animation_counter = 0
 
+
 class ShapeGenerator:
     pass
+
+
+def copy_img_to_buffer(buff_img: ImgData, img: ImgData, center: Tuple):
+    x, y = center
+    for i in range(0, (img.w * img.h * 4), 4):
+        set_pixel(buff_img,
+                  (x + (i % img.sl) // 4, y + i // img.sl),
+                  rgbh_to_hex(
+                       img.data[i + 0],
+                       img.data[i + 1],
+                       img.data[i + 2],
+                       img.data[i + 3]
+                  ))
+
+
+def set_pixel(img: ImgData, center: int | Tuple, color: hex = 0xFFFFFFFF):
+    if isinstance(center, int):
+        pos = center
+    elif isinstance(center, Tuple):
+        if len(center) == 2:
+            x, y = center
+            # print(f"x:{x}, y: {y}")
+            if x < 0 or x > img.w or y < 0 or y > img.h:
+                print("pixel outside range")
+                return
+            pos = (y * img.sl) + (x * (img.bpp // 8))
+        else:
+            print(f"Error: Invalid center format {center}. Allowed (x, y)")
+            return
+    else:
+        print(f"Error: Invalid center instance {center}. "
+              "Allowed instances are int/Tuple")
+        return
+
+    try:
+        if img.data is not None:
+            img.data[pos: pos + 4] = (color).to_bytes(4)
+    except Exception as e:
+        print(f"Error: {e}")
 
 
 def draw_circle(mlx_var: MlxVar, center: Tuple, radius: int):
@@ -137,11 +179,21 @@ class MyMLX:
     def init_mlx(self):
         self.mlx.mlx = Mlx()
         self.mlx.mlx_ptr = self.mlx.mlx.mlx_init()
-        self.mlx.win_ptr = self.mlx.mlx.mlx_new_window(self.mlx.mlx_ptr, self.w, self.h, "Fly IN")
+        self.mlx.win_ptr = self.mlx.mlx.mlx_new_window(self.mlx.mlx_ptr,
+                                                       self.w, self.h, "Fly IN")
+        self.mlx.buff_img.img = self.mlx.mlx.mlx_new_image(self.mlx.mlx_ptr,
+                                                           self.w, self.h)
+        self.mlx.buff_img.h = self.h
+        self.mlx.buff_img.w = self.w
+        self.mlx.buff_img.data, self.mlx.buff_img.bpp, \
+            self.mlx.buff_img.sl, self.mlx.buff_img.iformat = \
+            self.mlx.mlx.mlx_get_data_addr(self.mlx.buff_img.img)
+        # print(f"Buffer image: {self.mlx.mlx.mlx_get_data_addr(self.mlx.buff_img.img)}")
         self.mlx.mlx.mlx_clear_window(self.mlx.mlx_ptr, self.mlx.win_ptr)
         self.mlx.mlx.mlx_mouse_hook(self.mlx.win_ptr, self.mymouse, self.mlx)
         self.mlx.mlx.mlx_key_hook(self.mlx.win_ptr, self.mykey, self.mlx)
-        self.mlx.mlx.mlx_hook(self.mlx.win_ptr, 33, 0, self.gere_close, self.mlx)
+        self.mlx.mlx.mlx_hook(self.mlx.win_ptr, 33, 0,
+                              self.gere_close, self.mlx)
 
     def start_mlx(self):
         self.mlx.mlx.mlx_loop(self.mlx.mlx_ptr)
@@ -160,6 +212,18 @@ class MyMLX:
 
     def gere_close(self, mlx_var):
         mlx_var.mlx.mlx_loop_exit(mlx_var.mlx_ptr)
+
+    def put_buffer_image(self):
+        if self.mlx.buff_img is not None:
+            self.mlx.mlx.mlx_put_image_to_window(
+                self.mlx.mlx_ptr, self.mlx.win_ptr, self.mlx.buff_img.img,
+                0, 0)
+        else:
+            print("Error: buffer image is not set")
+
+    def set_buffer_image_background(self, color: hex = 0xFF000000):
+        for i in range(0, self.h * self.w, 4):
+            set_pixel(self.mlx.buff_img, i, color)
 
     def rgb_to_hex(self, r: int = 0, g: int = 0, b: int = 0):
         return 0xFF000000 | r << 16 | g << 8 | b
@@ -181,23 +245,19 @@ class GraphVisualizer(MyMLX):
         if keynum == 65293:
             self.update_map(mlx_var)
 
-    def put_image(self, xc: int, yc: int, offset: int):
-        x = xc - offset
-        y = yc - offset
-        self.mlx.mlx.mlx_put_image_to_window(
-            self.mlx.mlx_ptr, self.mlx.win_ptr, self.mlx.img, x, y)
-
     def fill_zone_wih_drones(self, mlx_var: MlxVar, offset: int,
                              center: Tuple, len: int, num: int = 0) -> None:
         x, y = center
         yp = yn = y
         for i in range(num):
             if i % 2 == 0:
-                self.put_image(x, yp, offset)
+                # self.put_image(x, yp, offset)
+                copy_img_to_buffer(self.mlx.buff_img, self.mlx.drone_img, (x, yp))
                 yp += len
             else:
                 yn -= len
-                self.put_image(x, yn, offset)
+                copy_img_to_buffer(self.mlx.buff_img, self.mlx.drone_img, (x, yn))
+                # self.put_image(x, yn, offset)
 
     def remove_drones(self, mlx_var: MlxVar, offset: int,
                       center: Tuple, len: int, num: int = 0) -> None:
@@ -238,7 +298,12 @@ class GraphVisualizer(MyMLX):
         try:
             result = self.mlx.mlx.mlx_xpm_file_to_image(
                 self.mlx.mlx_ptr, image_loc)
-            self.mlx.img, _, _ = result
+            self.mlx.drone_img.img, self.mlx.drone_img.w, \
+                self.mlx.drone_img.h = result
+            # print(self.mlx.mlx.mlx_get_data_addr(self.mlx.drone_img.img))
+            self.mlx.drone_img.data, self.mlx.drone_img.bpp, \
+                self.mlx.drone_img.sl, self.mlx.drone_img.iformat = \
+                    self.mlx.mlx.mlx_get_data_addr(self.mlx.drone_img.img)
         except Exception as e:
             print(f"Error: Unable to open image, {e}")
 
@@ -308,34 +373,28 @@ class GraphVisualizer(MyMLX):
                     connect_two_square(
                         self.mlx, (xi, yi), (xf, yf), sq_len,
                         self.rgb_to_hex(r=255))
-        # self.start_mlx()
+        self.put_buffer_image()
 
     def update_map(self, simulator: Simulator):
         # self.mlx.mlx.mlx_clear_window(self.mlx.mlx_ptr, self.mlx.win_ptr)
-        sq_len = 36
-        mul = 120
-        offset = 100
-        for key, zone in self.graph.items():
-            coord = zone.coordinates
-            xi = coord[0] * mul + offset
-            yi = coord[1] * mul + self.h // 2
-            self.remove_drones(self.mlx, sq_len // 2, (xi + 3, yi + 10),
-                               sq_len, zone.occupancy)
-            # self.fill_zone_wih_drones(self.mlx, sq_len // 2, (xi + 3, yi + 10),
-            #                           sq_len, zone.occupancy)
+        # sq_len = 36
+        # mul = 120
+        # offset = 100
+        # for key, zone in self.graph.items():
+        #     coord = zone.coordinates
+        #     xi = coord[0] * mul + offset
+        #     yi = coord[1] * mul + self.h // 2
+        #     self.remove_drones(self.mlx, sq_len // 2, (xi + 3, yi + 10),
+        #                        sq_len, zone.occupancy)
+        #     # self.fill_zone_wih_drones(self.mlx, sq_len // 2, (xi + 3, yi + 10),
+        #     #                           sq_len, zone.occupancy)
         drone_movement = self.simulator.next_move(self.valid_paths)
         if len(drone_movement) == 0:
             print("All drones reached to the goal")
         else:
             print(drone_movement)
-        # self.generate_map(self.valid_paths)
-        for key, zone in self.graph.items():
-            coord = zone.coordinates
-            xi = coord[0] * mul + offset
-            yi = coord[1] * mul + self.h // 2
-            self.fill_zone_wih_drones(self.mlx, sq_len // 2, (xi + 3, yi + 10),
-                                      sq_len, zone.occupancy)
-
+        self.set_buffer_image_background()
+        self.generate_map(self.valid_paths)
 
 
 def mymouse(button, x, y, mystuff):
@@ -419,30 +478,7 @@ def mlx_test():
     mlx_var.mlx.mlx_loop(mlx_var.mlx_ptr)
 
 
-def copy_img_to_buffer(buff_img: ImgData, img: ImgData, center: Tuple):
-    x, y = center
-    for i in range(0, (img.w * img.h * 4), 4):
-        set_pixel(buff_img,
-                  (x + (i % img.sl) // 4, y + i // img.sl),
-                  rgbh_to_hex(
-                       img.data[i + 0],
-                       img.data[i + 1],
-                       img.data[i + 2],
-                       img.data[i + 3]
-                  ))
 
-
-def set_pixel(img: ImgData, center: Tuple, color: hex = 0xFFFFFFFF):
-    x, y = center
-    # print(f"x:{x}, y: {y}")
-    if x < 0 or x > img.w or y < 0 or y > img.h:
-        return
-    pos = (y * img.sl) + (x * (img.bpp // 8))
-    try:
-        if img.data is not None:
-            img.data[pos: pos + 4] = (color).to_bytes(4)
-    except Exception as e:
-        print((color).to_bytes(4))
 
 
 if __name__ == "__main__":
