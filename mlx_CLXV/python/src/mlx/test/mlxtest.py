@@ -154,10 +154,10 @@ def main():
         sys.exit(1)
 
     xvar.mlx_ptr = xvar.mlx.mlx_init()
-    
+
     ret, xvar.screen_w, xvar.screen_h = xvar.mlx.mlx_get_screen_size(xvar.mlx_ptr)
     print(f"Screen size: {xvar.screen_w} x {xvar.screen_h}")
-    
+
     # Windows creation
     try:
         xvar.win_1 = xvar.mlx.mlx_new_window(xvar.mlx_ptr, 400, 400, "MLX main win")
@@ -196,7 +196,7 @@ def main():
             (199 * 200 + 199) * 4,         # bottom right
             (198 * 200 + 198) * 4          # bottom right - 1
         ]
-        
+
         for pos in pixel_positions:
             if pos < len(xvar.img_1.data) - 3:
                 xvar.img_1.data[pos:pos+4] = (0xFFFF0000).to_bytes(4, 'little')
@@ -271,6 +271,7 @@ def main():
         xvar.mlx.mlx_destroy_window(xvar.mlx_ptr, xvar.win_2)
     print("destroy mlx")
     xvar.mlx.mlx_release(xvar.mlx_ptr)
+
 
 if __name__ == "__main__":
     main()
