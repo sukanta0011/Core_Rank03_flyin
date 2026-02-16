@@ -34,7 +34,8 @@ class Drone:
         return self.link
 
     def remaining_moves(self) -> int:
-        print(f"name: {self.pos.name}({self.name}), cost: {self.pos.cost}, move: {self.moves}")
+        print(f"name: {self.pos.name}({self.name}), "
+              f"cost: {self.pos.cost}, move: {self.moves}")
         return self.pos.cost - self.moves
 
 

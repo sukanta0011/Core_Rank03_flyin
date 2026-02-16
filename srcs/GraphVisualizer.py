@@ -71,8 +71,10 @@ def crop_letter(dest: ImgData, src: ImgData,
         for x in range(dest.w):
             pos = (y + start_y) * src.sl + 4 * (x + start_x)
             dst_pos = (y * dest.sl) + (4 * x)
-            if src.data[pos + 1] == 0 and src.data[pos + 2] == 0 and src.data[pos + 2] == 0:
-                dest.data[dst_pos: dst_pos + 4] = (bg_color).to_bytes(4, "little")
+            if src.data[pos + 1] == 0 and src.data[pos + 2] == 0 and \
+                    src.data[pos + 2] == 0:
+                dest.data[dst_pos: dst_pos + 4] = \
+                    (bg_color).to_bytes(4, "little")
             else:
                 dest.data[dst_pos: dst_pos + 4] = (color).to_bytes(4, "little")
 
@@ -234,7 +236,7 @@ class MyMLX:
         self.mlx.mlx = Mlx()
         self.mlx.mlx_ptr = self.mlx.mlx.mlx_init()
         self.mlx.win_ptr = self.mlx.mlx.mlx_new_window(
-            self.mlx.mlx_ptr, self.w, self.h, "Fly IN")
+            self.mlx.mlx_ptr, self.w, self.h, "GUI")
         self.mlx.buff_img = generate_blank_image(self.mlx, self.w, self.h)
         self.mlx.static_bg = generate_blank_image(self.mlx, self.w, self.h)
         self.set_background(self.mlx.static_bg)
@@ -563,7 +565,6 @@ def drone_animation_translation(
         pass
 
 
-
 def drone_animation_hovering(params: Tuple[MlxVar, str]):
     mlx_var = params[0]
     print(f"test: {params[1]}")
@@ -593,8 +594,10 @@ def mlx_test():
     draw_square(mlx_var.mlx, (450, 300), 20)
     connect_two_square(mlx_var.mlx, (250, 150), (450, 300), 20)
 
-    result = mlx_var.mlx.mlx.mlx_xpm_file_to_image(mlx_var.mlx.mlx_ptr, "images/drone1.xpm")
-    mlx_var.mlx.drone_img.img, mlx_var.mlx.drone_img.w, mlx_var.mlx.drone_img.h = result
+    result = mlx_var.mlx.mlx.mlx_xpm_file_to_image(mlx_var.mlx.mlx_ptr,
+                                                   "images/drone1.xpm")
+    mlx_var.mlx.drone_img.img, mlx_var.mlx.drone_img.w,\
+        mlx_var.mlx.drone_img.h = result
     mlx_var.mlx.drone_img.data, mlx_var.mlx.drone_img.bpp, \
         mlx_var.mlx.drone_img.sl, mlx_var.mlx.drone_img.iformat = \
         mlx_var.mlx.mlx.mlx_get_data_addr(mlx_var.mlx.drone_img.img)

@@ -2,7 +2,6 @@ from srcs.MapParser import MapParser
 from srcs.PathFinder import DepthFirstSearch
 from srcs.Simulator import SimpleSimulator
 from srcs.GraphVisualizer import GraphVisualizer, xmp_to_img
-from srcs.Manager import VisualSimulationManager
 from srcs.LetterToImageMaker import (
     LetterToImageMapper,
     ImageScaler,
@@ -23,9 +22,9 @@ def main():
     # file_path = "maps/easy/03_basic_capacity.txt"
     # file_path = "maps/medium/02_circular_loop.txt"
     # file_path = "maps/medium/03_priority_puzzle.txt"
-    # file_path = "maps/hard/01_maze_nightmare.txt"
+    file_path = "maps/hard/01_maze_nightmare.txt"
     # file_path = "maps/hard/02_capacity_hell.txt"
-    file_path = "maps/hard/03_ultimate_challenge.txt"
+    # file_path = "maps/hard/03_ultimate_challenge.txt"
     # file_path = "maps/challenger/01_the_impossible_dream.txt"
     # file_path = "maps/invalid/map1.txt"
     # file_path = "maps/my_maps/priority_map1.txt"
@@ -45,7 +44,7 @@ def main():
         simple_sim = SimpleSimulator(graph=map, valid_paths=paths,
                                      drones=drones)
         drones = simple_sim.get_drones()
-        graph_visual = GraphVisualizer(map, 2500, 800, valid_map,
+        graph_visual = GraphVisualizer(map, 1500, 800, valid_map,
                                        simple_sim, drones)
 
         letter_map = LetterToImageMapper(graph_visual.get_mlx())

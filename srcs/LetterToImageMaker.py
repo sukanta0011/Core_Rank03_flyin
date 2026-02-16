@@ -16,15 +16,6 @@ class LetterToImageMapper:
         self.symbols = ".,;:_#'!\"/?<>%&*()"
         self.mlx.letter_img = xmp_to_img(self.mlx, self.image)
 
-    # def init_image(self) -> None:
-    #     result = self.mlx.mlx.mlx_xpm_file_to_image(self.mlx.mlx_ptr, self.image)
-    #     self.mlx.letter_img.img, self.mlx.letter_img.w, \
-    #         self.mlx.letter_img.h = result
-
-    #     self.mlx.letter_img.data, self.mlx.letter_img.bpp, \
-    #         self.mlx.letter_img.sl, self.mlx.letter_img.iformat = \
-    #         self.mlx.mlx.mlx_get_data_addr(self.mlx.letter_img.img)
-
     def create_map(self):
         w = 60
         h = 80
@@ -138,11 +129,10 @@ def tester():
     txt_to_img = TxtToImage(mlx.mlx.letter_map)
     txt_to_img.add_stages(scaler)
     txt_to_img.add_stages(letter_color)
-    txt_to_img.print_txt(mlx.mlx, mlx.mlx.buff_img, "Hello Mr._(0071)", 
+    txt_to_img.print_txt(mlx.mlx, mlx.mlx.buff_img, "Hello Mr._(0071)",
                          (100, 100))
 
     copy_img_to_buffer(mlx.mlx.buff_img, colored_a, (300, 0))
-
 
     mlx.mlx.mlx.mlx_put_image_to_window(mlx.mlx.mlx_ptr, mlx.mlx.win_ptr,
                                         mlx.mlx.buff_img.img, 0, 0)
