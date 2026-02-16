@@ -14,6 +14,7 @@ class Drone:
         self.current_pos: List[float] = list(start_pos.coordinates)
         self.target_pos: List[float] = list(start_pos.coordinates)
         self.moves = 0
+        self.txt: str = ""
         self.link = None
 
     def update_pos(self, curr_pos: Zone):
@@ -112,6 +113,7 @@ class SimpleSimulator(Simulator):
                             break
 
         for drone in self.drones:
+            drone.txt = ""
             for link in drone.pos.links:
                 # if link.occupancy > 0 and link.target.zone_type.value == "restricted" and\
                 if link.occupancy > 0 and drone.get_link() is not None:
@@ -126,6 +128,7 @@ class SimpleSimulator(Simulator):
                             drone.update_pos(link.target)
                             drone.target_pos = list(drone.pos.coordinates)
                             drone_move += f"{drone.name}-{drone.pos.name} "
+                            drone.txt = f"{drone.name}-{drone.pos.name}"
                         # break
                         else:
                             # print(f"{drone.name} is in restricted zone, {drone.link.target.name}")
@@ -137,4 +140,6 @@ class SimpleSimulator(Simulator):
                                                 for i in range(2)]
                             drone_move += f"{drone.name}-{drone.pos.name}"\
                                           f"-{link.target.name} "
+                            drone.txt = f"{drone.name}-{drone.pos.name}"\
+                                        f"-{link.target.name}"    
         return drone_move

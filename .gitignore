@@ -1,2 +1,3 @@
 .mypy_cache
-srcs/__pycache__
+/__pycache__
+/srcs/__pycache__

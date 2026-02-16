@@ -11,7 +11,7 @@ class LetterToImageMapper:
         self.mlx = mlx
         self.image = "images/alphabets.xpm"
         self.cap = "ABCDEFGHIJKLMNOPQRSTUVWXYZ "
-        self.small = "abcdefghijklmnopqrstuwxyz"
+        self.small = "abcdefghijklmnopqrstuvwxyz"
         self.num = "0123456789"
         self.symbols = ".,;:_#'!\"/?<>%&*()"
         self.mlx.letter_img = xmp_to_img(self.mlx, self.image)

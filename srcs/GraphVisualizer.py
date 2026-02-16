@@ -39,7 +39,7 @@ class ConstantParameters:
     def __init__(self) -> None:
         self.sq_len = 46
         self.mul = 120
-        self.x_offset = 100
+        self.x_offset = 500
         self.fractional_move = 0.05
 
 
@@ -306,6 +306,8 @@ class GraphVisualizer(MyMLX):
         self.valid_paths = valid_paths
         self.simulator = simulator
         self.const = ConstantParameters()
+        self.counter = 0
+        self.move_txt = "Move: 0"
         self.start_animation()
 
     def mykey(self, keynum, mlx_var):
@@ -321,7 +323,7 @@ class GraphVisualizer(MyMLX):
                                    drone_animation_translation,
                                    (self.mlx, self.const,
                                     self.drones, self.graph,
-                                    self.print_capacity))
+                                    self.print_move, self.print_txt))
 
     def fill_zone_wih_drones(self, mlx_var: MlxVar, offset: int,
                              center: Tuple, len: int, num: int = 0) -> None:
@@ -372,24 +374,27 @@ class GraphVisualizer(MyMLX):
                 mlx_var.mlx_ptr, mlx_var.win_ptr,
                 x, yn - len - len // 2, 255, f"{name}")
 
-    def print_name(self, mlx_var: MlxVar, img: ImgData,
-                   center: Tuple, name: str, split_by: str):
+    def print_txt(self, mlx_var: MlxVar, img: ImgData,
+                  center: Tuple, name: str, split_by: str,
+                  factor: float, font_clr=0xffffffff, bg_clr=0x00000000):
         x, y = center
-        split_names = name.split("split_by")
-        yc = y + self.const.sq_len * 2 // 3
-        xc = x - self.const.sq_len // 2
+        split_names = name.split(split_by)
         for name in split_names:
             self.txt_to_img.print_txt(
-                self.mlx, img, name, (xc, yc), 0.3)
-            yc += 20
+                self.mlx, img, name, (x, y), factor,
+                font_clr, bg_clr)
+            y += int(50 * factor)
 
-    def print_capacity(self, mlx_var: MlxVar, img: ImgData,
-                   center: Tuple, capacity: str,):
+    def print_move(self, mlx_var: MlxVar, img: ImgData,
+                   center: Tuple, name: str, split_by: str,
+                   factor: float, font_clr=0xffffffff, bg_clr=0x00000000):
         x, y = center
-        yc = y - self.const.sq_len
-        xc = x - self.const.sq_len // 2
-        self.txt_to_img.print_txt(
-            self.mlx, img, capacity, (xc, yc), 0.4)
+        split_names = self.move_txt.split('\n')
+        for name in split_names:
+            self.txt_to_img.print_txt(
+                self.mlx, img, name, (x, y), factor,
+                font_clr, bg_clr)
+            y += int(50 * factor)
 
     def set_drone_image(self, img: ImgData) -> None:
         self.mlx.drone_img = img
@@ -411,7 +416,7 @@ class GraphVisualizer(MyMLX):
         self.txt_to_img.print_txt(
             self.mlx, self.mlx.static_bg, str(capacity), (x_txt, y_txt), 0.5)
 
-    def generate_map(self, valid_paths: Dict[str, List]):
+    def generate_header(self):
         self.txt_to_img.print_txt(
             self.mlx, self.mlx.static_bg, "Welcome to FLYIN",
             (10, 10), font_color=0xFFFF0000)
@@ -423,7 +428,17 @@ class GraphVisualizer(MyMLX):
         self.txt_to_img.print_txt(
             self.mlx, self.mlx.static_bg, "restricted",
             (70, 80), factor=0.5)
+        draw_line(self.mlx, (30, 120), 30, "h")
+        self.txt_to_img.print_txt(
+            self.mlx, self.mlx.static_bg, "Normal",
+            (70, 110), factor=0.5)
+        draw_line(self.mlx, (30, 150), 30, "h",  self.rgb_to_hex(r=255))
+        self.txt_to_img.print_txt(
+            self.mlx, self.mlx.static_bg, "Blocked",
+            (70, 140), factor=0.5)
+        draw_line(self.mlx, (0, 200), self.mlx.buff_img.w, "h", 0xff2ebdca)
 
+    def generate_map(self, valid_paths: Dict[str, List]):
         for key, zone in self.graph.items():
             coord = zone.coordinates
             color = 0xFFFFFFFF
@@ -438,8 +453,8 @@ class GraphVisualizer(MyMLX):
             draw_square(self.mlx, (xi, yi), self.const.sq_len, color)
             # self.fill_zone_wih_drones(self.mlx, scale_params.sq_len // 2, (xi + 3, yi + 10),
             #                           scale_params.sq_len, zone.occupancy)
-            self.print_name(self.mlx, self.mlx.static_bg,
-                           (xi, yi), zone.name, "_")
+            self.print_txt(self.mlx, self.mlx.static_bg,
+                           (xi, yi + int(self.const.sq_len * 2 / 3)), zone.name, "_", 0.3)
             # self.print_capacity(self.mlx, self.mlx.static_bg,
             #                (xi, yi), f"{zone.capacity}:{zone.occupancy}")
             # self.txt_to_img.print_txt(
@@ -476,22 +491,27 @@ class GraphVisualizer(MyMLX):
         drone_movement = self.simulator.next_move(self.valid_paths)
         if len(drone_movement) == 0:
             print("All drones reached to the goal")
+            self.move_txt = f"Move: {self.counter}\nCongratulation."\
+                            "\nSimulation completed."     
         else:
             print(drone_movement)
-            self.print_name(self.mlx, self.mlx.buff_img,
-                            (100, 100), drone_movement, " ")
+            self.counter += 1
+            self.move_txt = f"Move: {self.counter}"
+            # self.print_txt(self.mlx, self.mlx.buff_img,
+            #                (100, 100), drone_movement, " ", 0.4)
         # self.generate_map(self.valid_paths)
 
 
 def drone_animation_translation(
         params: Tuple[MlxVar, ConstantParameters, 
                       List[Drone], Dict[str, Zone]]):
-    mlx_var, const, drones, zones, func = params
+    mlx_var, const, drones, zones, func_move, func_txt = params
     mlx_var.mlx.mlx_clear_window(mlx_var.mlx_ptr, mlx_var.win_ptr)
     mlx_var.buff_img.data[:] = mlx_var.static_bg.data[:]
 
     all_drone_moved = True
-    time.sleep(0.05)
+    drone_info = ""
+    time.sleep(0.01)
     for drone in drones:
         xf, yf = drone.target_pos
         xi, yi = drone.last_pos
@@ -513,19 +533,27 @@ def drone_animation_translation(
                 yc = slope * (xc - xi) + yi
         else:
             xc, yc = float(xf), float(yf)
+        if len(drone.txt) > 0:
+            drone_info += f"{drone.txt} "
         drone.current_pos = [xc, yc]
         xc_scaled = int(xc * const.mul + const.x_offset)
         yc_scaled = int(yc * const.mul + mlx_var.buff_img.h // 2)
-        # print(xc_scaled, yc_scaled)
+
         copy_img_to_buffer(mlx_var.buff_img, mlx_var.drone_img,
                            (xc_scaled - mlx_var.drone_img.w // 2,
                             yc_scaled - mlx_var.drone_img.h // 2))
-        for _, zone in zones.items():
-            coord = zone.coordinates
-            xi = coord[0] * const.mul + const.x_offset
-            yi = coord[1] * const.mul + mlx_var.buff_img.h // 2
-            func(mlx_var, mlx_var.buff_img,
-                 (xi, yi), f"{zone.capacity}:{zone.occupancy}")
+        func_txt(mlx_var, mlx_var.buff_img, (xc_scaled - mlx_var.drone_img.w // 2,
+             yc_scaled - mlx_var.drone_img.h), drone.name, " ", 0.3)
+    func_move(mlx_var, mlx_var.buff_img, (50, 210), "", "_",
+              0.5, 0xFF00FF00)
+    if len(drone_info) > 0:
+        func_txt(mlx_var, mlx_var.buff_img, (50, 250), drone_info, " ", 0.4)
+    for _, zone in zones.items():
+        coord = zone.coordinates
+        xi = coord[0] * const.mul + const.x_offset
+        yi = coord[1] * const.mul + mlx_var.buff_img.h // 2
+        func_txt(mlx_var, mlx_var.buff_img,
+                 (xi - 40, yi - 45), f"{zone.capacity}:{zone.occupancy}", " ", 0.4)
     # print([drone.name for drone in drones])
     # copy_img_to_buffer(mlx_var.buff_img, mlx_var.static_bg, (0, 0))
     # print(f"Animation updated: {[(drone.name, drone.target_pos)for drone in drones]}")
@@ -533,14 +561,6 @@ def drone_animation_translation(
                                         mlx_var.buff_img.img, 0, 0)
     if all_drone_moved:
         pass
-        # for _, zone in zones.items():
-        #     coord = zone.coordinates
-        #     xi = coord[0] * const.mul + const.x_offset
-        #     yi = coord[1] * const.mul + mlx_var.buff_img.h // 2
-        #     func(mlx_var, mlx_var.buff_img,
-        #          (xi, yi), f"{zone.capacity}:{zone.occupancy}")
-        # mlx_var.mlx.mlx_put_image_to_window(mlx_var.mlx_ptr, mlx_var.win_ptr,
-        #                                 mlx_var.buff_img.img, 0, 0)
 
 
 
