@@ -1,8 +1,14 @@
 from srcs.MapParser import MapParser
 from srcs.PathFinder import DepthFirstSearch
 from srcs.Simulator import SimpleSimulator
-from srcs.GraphVisualizer import GraphVisualizer
+from srcs.GraphVisualizer import GraphVisualizer, xmp_to_img
 from srcs.Manager import VisualSimulationManager
+from srcs.LetterToImageMaker import (
+    LetterToImageMapper,
+    ImageScaler,
+    TxtColorChanger,
+    TxtToImage
+)
 from srcs.helpers import (
     get_pos_obj,
     format_valid_paths_into_list,
@@ -17,12 +23,11 @@ def main():
     # file_path = "maps/easy/03_basic_capacity.txt"
     # file_path = "maps/medium/02_circular_loop.txt"
     # file_path = "maps/medium/03_priority_puzzle.txt"
-    # file_path = "maps/hard/01_maze_nightmare.txt"
-    file_path = "maps/hard/02_capacity_hell.txt"
+    file_path = "maps/hard/01_maze_nightmare.txt"
+    # file_path = "maps/hard/02_capacity_hell.txt"
     # file_path = "maps/hard/03_ultimate_challenge.txt"
     # file_path = "maps/challenger/01_the_impossible_dream.txt"
     # file_path = "maps/invalid/map1.txt"
-    # file_path = "maps/challenger/01_the_impossible_dream.txt"
     # file_path = "maps/my_maps/priority_map1.txt"
     map_parser = MapParser()
     map_parser.parse(file_path)
@@ -37,19 +42,30 @@ def main():
         hubs_name = list(map.keys())
         valid_map = create_valid_graph(hubs_name, new_paths)
         valid_map = sort_map_by_priority(valid_map, map)
-        # for path in paths:
-        #     print(path)
         simple_sim = SimpleSimulator(graph=map, valid_paths=paths,
                                      drones=drones)
-        graph_visual = GraphVisualizer(map, 1800, 900, valid_map, simple_sim)
-        graph_visual.add_xmp_image("images/drone1.xpm")
+        drones = simple_sim.get_drones()
+        graph_visual = GraphVisualizer(map, 1800, 800, valid_map,
+                                       simple_sim, drones)
+
+        letter_map = LetterToImageMapper(graph_visual.get_mlx())
+        letter_map.create_map()
+        letter_scaler = ImageScaler()
+        letter_color = TxtColorChanger()
+        txt_to_img = TxtToImage(graph_visual.get_mlx().letter_map)
+        txt_to_img.add_stages(letter_scaler)
+        txt_to_img.add_stages(letter_color)
+
+        graph_visual.add_txt_to_img_mapper(txt_to_img)
+
+        img = xmp_to_img(graph_visual.get_mlx(), "images/drone2.xpm")
+        # img = xmp_to_img(graph_visual.get_mlx(), "images/drone1.xpm")
+        drone_img_scaler = ImageScaler()
+        img = drone_img_scaler.process(graph_visual.get_mlx(), img, 0.05)
+        if img is not None:
+            graph_visual.set_drone_image(img)
         graph_visual.generate_map(valid_map)
         graph_visual.start_mlx()
-        # manager = VisualSimulationManager(simple_sim, graph_visual, valid_map)
-        # manager.play()
-        # graph_visual.generate_map(valid_map)
-        # simple_sim.show_zone_state()
-        # simple_sim.start_simulation(valid_map)
 
 
 if __name__ == "__main__":

@@ -10,6 +10,9 @@ class Drone:
     def __init__(self, drone_id: int, start_pos: Zone) -> None:
         self.name = f"D{drone_id}"
         self.pos = start_pos
+        self.last_pos: List[float] = list(start_pos.coordinates)
+        self.current_pos: List[float] = list(start_pos.coordinates)
+        self.target_pos: List[float] = list(start_pos.coordinates)
         self.moves = 0
         self.link = None
 
@@ -51,6 +54,9 @@ class Simulator(ABC):
                 self.start.populate()
         return all_drones
 
+    def get_drones(self) -> List[Drone]:
+        return self.drones
+
     def show_zone_state(self):
         zone_state = ""
         for _, zone in self.graph.items():
@@ -66,11 +72,6 @@ class Simulator(ABC):
         pass
 
 
-# D1-Junction, D2-Junction
-# D1-path_b, D2-path_a, D3-Junction
-# D1-goal, D2-goal, D3-path_a
-# D3-goal
-
 class SimpleSimulator(Simulator):
     def get_link_obj(self, link_name: str, links: List[Link]) -> Link | None:
         for link in links:
@@ -84,8 +85,9 @@ class SimpleSimulator(Simulator):
             # self.show_zone_state()
             # time.sleep(1)
             drone_move = self.next_move(valid_map)
-            print(drone_move)
+            # print(drone_move)
             move_counter += 1
+            drone_move += f"Move No: {move_counter}"
         print(f"Total Moves: {move_counter}")
 
     def next_move(self, valid_map: Dict[str, List]) -> str:
@@ -103,6 +105,7 @@ class SimpleSimulator(Simulator):
                     elif link.free_spaces() > 0:
                         if link.free_spaces() <= link.target.free_spaces():
                             link.populate()
+                            drone.last_pos = list(drone.pos.coordinates)
                             drone.pos.free()
                             drone.increase_move()
                             drone.set_link(link)
@@ -121,10 +124,17 @@ class SimpleSimulator(Simulator):
                             link.target.populate()
                             drone.set_link(None)
                             drone.update_pos(link.target)
+                            drone.target_pos = list(drone.pos.coordinates)
                             drone_move += f"{drone.name}-{drone.pos.name} "
                         # break
                         else:
                             # print(f"{drone.name} is in restricted zone, {drone.link.target.name}")
+                            drone.target_pos = [drone.last_pos[i] +
+                                                (link.target.coordinates[i] -
+                                                drone.pos.coordinates[i]) *
+                                                (drone.moves /
+                                                link.target.cost)
+                                                for i in range(2)]
                             drone_move += f"{drone.name}-{drone.pos.name}"\
-                                            f"-{link.target.name} "
+                                          f"-{link.target.name} "
         return drone_move
