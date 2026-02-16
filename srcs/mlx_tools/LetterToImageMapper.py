@@ -1,6 +1,6 @@
 from typing import Dict, List, Tuple, Protocol
 from mlx import Mlx
-from srcs.GraphVisualizer import (
+from srcs.visualizer.GraphVisualizer import (
     MlxVar, MyMLX, copy_img_to_buffer,
     ImgData, crop_letter, generate_blank_image,
     xmp_to_img)

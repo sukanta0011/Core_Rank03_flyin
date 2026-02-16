@@ -1,5 +1,5 @@
 from typing import Dict, List
-from srcs.GraphConstructor import Zone
+from srcs.parser.GraphConstructor import Zone
 
 
 def get_pos_obj(graph: Dict[str, Zone],

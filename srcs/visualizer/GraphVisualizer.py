@@ -3,8 +3,8 @@ import math
 import time
 from mlx import Mlx
 from webcolors import name_to_hex, name_to_rgb
-from srcs.GraphConstructor import Zone
-from srcs.Simulator import Simulator, Drone
+from srcs.parser.GraphConstructor import Zone
+from srcs.simulator.Simulator import Simulator, Drone
 # from srcs.LetterToImageMaker import TxtToImage
 
 
@@ -45,6 +45,8 @@ class ConstantParameters:
 
 def copy_img_to_buffer(dest: ImgData, src: ImgData, center: Tuple):
     start_x, start_y = center
+    if (start_x + src.w > dest.w) or (start_y + src.h > dest.h):
+        return
     for y in range(src.h):
         dest_start = (start_y + y) * dest.sl + (4 * start_x)
         dest_end = dest_start + (4 * src.w)
@@ -79,10 +81,12 @@ def crop_letter(dest: ImgData, src: ImgData,
                 dest.data[dst_pos: dst_pos + 4] = (color).to_bytes(4, "little")
 
 
-def set_pixel(img: ImgData, center: int | Tuple, color: hex = 0xFFFFFFFF):
+def set_pixel(img: ImgData, center: int | Tuple, color= 0xFFFFFFFF):
     if isinstance(center, int):
         # print(f"one position: {center}")
         pos = center
+        if pos >= (img.w * img.h * 4):
+            return
     elif isinstance(center, Tuple):
         if len(center) == 2:
             x, y = center
@@ -296,7 +300,7 @@ class MyMLX:
             return "#ffffff"
 
 
-from srcs.LetterToImageMaker import TxtToImage
+from srcs.mlx_tools.LetterToImageMapper import TxtToImage
 
 class GraphVisualizer(MyMLX):
     def __init__(self, graph: Dict[str, Zone], w: int, h: int,
@@ -513,7 +517,7 @@ def drone_animation_translation(
 
     all_drone_moved = True
     drone_info = ""
-    time.sleep(0.01)
+    # time.sleep(0.01)
     for drone in drones:
         xf, yf = drone.target_pos
         xi, yi = drone.last_pos

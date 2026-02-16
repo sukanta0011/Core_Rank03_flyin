@@ -1,7 +1,7 @@
 from typing import List, Dict
 from prettytable import PrettyTable
-from srcs.GraphConstructor import Zone, StartZone, EndZone
-from srcs.custom_errors import (
+from srcs.parser.GraphConstructor import Zone, StartZone, EndZone
+from srcs.parser.ParsingErrors import (
     MapError,
     DroneNumError,
     FormattingError,

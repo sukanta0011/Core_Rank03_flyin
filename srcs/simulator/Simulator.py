@@ -2,8 +2,8 @@ from typing import Dict, List
 import time
 from abc import ABC, abstractmethod
 # from pydantic import BaseModel
-from srcs.GraphConstructor import Zone, Link
-from srcs.helpers import get_pos_obj
+from srcs.parser.GraphConstructor import Zone, Link
+from srcs.simulator.helpers import get_pos_obj
 
 
 class Drone:

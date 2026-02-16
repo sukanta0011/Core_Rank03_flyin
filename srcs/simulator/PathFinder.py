@@ -1,7 +1,7 @@
 from typing import List, Dict
 from abc import ABC, abstractmethod
-from srcs.GraphConstructor import Zone
-from srcs.helpers import get_pos_obj
+from srcs.parser.GraphConstructor import Zone
+from srcs.simulator.helpers import get_pos_obj
 
 
 class PathFinder(ABC):

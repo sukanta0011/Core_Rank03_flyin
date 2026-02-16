@@ -1,20 +1,20 @@
-from srcs.MapParser import MapParser
-from srcs.PathFinder import DepthFirstSearch
-from srcs.Simulator import SimpleSimulator
-from srcs.GraphVisualizer import GraphVisualizer, xmp_to_img
-from srcs.LetterToImageMaker import (
+from srcs.parser.MapParser import MapParser
+from srcs.simulator.PathFinder import DepthFirstSearch
+from srcs.simulator.Simulator import SimpleSimulator
+from srcs.visualizer.GraphVisualizer import GraphVisualizer, xmp_to_img
+from srcs.mlx_tools.LetterToImageMapper import (
     LetterToImageMapper,
     ImageScaler,
     TxtColorChanger,
     TxtToImage
 )
-from srcs.helpers import (
+from srcs.simulator.helpers import (
     get_pos_obj,
     format_valid_paths_into_list,
     create_valid_graph,
     sort_map_by_priority
     )
-from srcs.GraphVisualizer import mlx_test
+from srcs.visualizer.GraphVisualizer import mlx_test
 
 
 def main():
@@ -22,10 +22,10 @@ def main():
     # file_path = "maps/easy/03_basic_capacity.txt"
     # file_path = "maps/medium/02_circular_loop.txt"
     # file_path = "maps/medium/03_priority_puzzle.txt"
-    file_path = "maps/hard/01_maze_nightmare.txt"
+    # file_path = "maps/hard/01_maze_nightmare.txt"
     # file_path = "maps/hard/02_capacity_hell.txt"
     # file_path = "maps/hard/03_ultimate_challenge.txt"
-    # file_path = "maps/challenger/01_the_impossible_dream.txt"
+    file_path = "maps/challenger/01_the_impossible_dream.txt"
     # file_path = "maps/invalid/map1.txt"
     # file_path = "maps/my_maps/priority_map1.txt"
     map_parser = MapParser()

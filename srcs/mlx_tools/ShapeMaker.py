@@ -1,4 +1,3 @@
-
 class ShapeGenerator:
     def draw_circle(self, mlx_var: MlxVar, center: Tuple, radius: int):
         x, y = center
@@ -25,7 +24,7 @@ class ShapeGenerator:
                 #                           mlx_var.win_ptr, x, i, color)
         else:
             print(f"Unknown direction: {direction}. "
-                "Allowed directions are 'v' and 'h'")
+                  "Allowed directions are 'v' and 'h'")
 
     def draw_square(self, mlx_var: MlxVar, center: Tuple,
                     len: int, color: hex = 0xFFFFFFFF):
@@ -36,7 +35,7 @@ class ShapeGenerator:
         self.draw_line(mlx_var, (x - len // 2, y - len // 2), len, "v", color)
 
     def draw_rectangle(self, mlx_var: MlxVar, center: Tuple,
-                    h: int, w: int, color: hex = 0xFFFFFFFF):
+                       h: int, w: int, color: hex = 0xFFFFFFFF):
         x, y = center
         for i in range(y, y + h):
             self.draw_line(mlx_var, (x, i), h, "h", color)
