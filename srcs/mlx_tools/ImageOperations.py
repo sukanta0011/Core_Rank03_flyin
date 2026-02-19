@@ -65,39 +65,13 @@ def crop_img(dest: ImgData, src: ImgData, center: Tuple):
         dest.data[dest_start:dest_end] = src.data[src_start:src_end]
 
 
-def extract_letter_width(img: ImgData, center: Tuple,
-                         h: int, w: int) -> Tuple[int, int]:
-    start_x, start_y = center
-    left_width, right_width = img.w + 10, start_x
-    for y in range(h):
-        src_start = (start_y + y) * img.sl + (4 * start_x)
-        src_end = src_start + (4 * w)
-        while (img.data[src_start + 1] == 0 and
-               img.data[src_start + 2] == 0 and
-                img.data[src_start + 3] == 0) and\
-                (src_start <= src_end):
-            src_start += 4
-        if left_width > src_start - 4:
-            left_width = src_start - 4
-
-        if src_start < src_end:
-            while (img.data[src_start + 1] > 0 or 
-                   img.data[src_start + 2] > 0 or
-                    img.data[src_start + 3] > 0) and\
-                     (src_start <= src_end):
-                src_start += 4
-            if right_width < src_start - 4:
-                right_width = src_start - 4
-    return (left_width, right_width)
-
-
 def set_pixel(img: ImgData, center: int | Tuple, color= 0xFFFFFFFF):
     if isinstance(center, int):
         # print(f"one position: {center}")
         pos = center
         if pos >= (img.w * img.h * 4):
             return
-    elif isinstance(center, Tuple):
+    elif isinstance(center, tuple):
         if len(center) == 2:
             x, y = center
             # print(f"x:{x}, y: {y}")
@@ -193,6 +167,8 @@ class TxtToImage:
 
 
 def tester():
+    from srcs.mlx_tools.LetterToImageMapper import LetterToImageMapper
+    from srcs.mlx_tools.BaseMLX import MyMLX
     mlx = MyMLX(800, 800)
     # image = "images/alphabets.xpm"
     letter_map = LetterToImageMapper(mlx.mlx)
@@ -213,8 +189,14 @@ def tester():
     txt_to_img = TxtToImage(mlx.mlx.letter_map)
     txt_to_img.add_stages(scaler)
     txt_to_img.add_stages(letter_color)
-    txt_to_img.print_txt(mlx.mlx, mlx.mlx.buff_img, "Hello Mr._(0071)",
-                         (100, 100))
+    txt_to_img.print_txt(mlx.mlx, mlx.mlx.buff_img, "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                         (100, 180))
+    txt_to_img.print_txt(mlx.mlx, mlx.mlx.buff_img, "AabcdefghijklmnopqrstuvwxyzZ",
+                         (100, 260))
+    txt_to_img.print_txt(mlx.mlx, mlx.mlx.buff_img, "0123456789",
+                         (100, 340))
+    txt_to_img.print_txt(mlx.mlx, mlx.mlx.buff_img, ".,;:_#'!\"/?<>%&*()",
+                         (100, 420))
 
     copy_img(mlx.mlx.buff_img, colored_a, (300, 0))
 

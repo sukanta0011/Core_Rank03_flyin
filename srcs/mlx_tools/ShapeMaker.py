@@ -20,14 +20,18 @@ class ShapeGenerator:
 
     def draw_line(self, img: ImgData, coordinate: Tuple,
                   len: int, direction: str = "v",
-                  color=0xFFFFFFFF) -> None:
+                  color=0xFFFFFFFF, thickness: int = 1) -> None:
         x, y = coordinate
         if direction == "h":
-            for i in range(x, x + len):
-                set_pixel(img, (i, y), color)
+            y -= thickness // 2
+            for i in range(thickness):
+                for j in range(x, x + len):
+                    set_pixel(img, (j, y + i), color)
         elif direction == "v":
-            for i in range(y, y + len):
-                set_pixel(img, (x, i), color)
+            x -= thickness // 2
+            for i in range(thickness):
+                for j in range(y, y + len):
+                    set_pixel(img, (x + i, j), color)
         else:
             print(f"Unknown direction: {direction}. "
                   "Allowed directions are 'v' and 'h'")

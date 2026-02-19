@@ -1,5 +1,8 @@
-from typing import Dict, List
+from __future__ import annotations
+from typing import Dict, List, Tuple, TYPE_CHECKING
 from srcs.parser.GraphConstructor import Zone
+if TYPE_CHECKING:
+    from srcs.visualizer.GraphVisualizer import ConstantParameters
 
 
 def get_pos_obj(graph: Dict[str, Zone],
@@ -51,3 +54,27 @@ def sort_map_by_priority(valid_map: Dict[str, List[str]],
 
     # print(valid_map)
     return valid_map
+
+
+def get_min_max_coordinates_from_map(map: Dict[str, Zone]) -> Tuple[int, int, int, int]:
+    x_coords = [val.coordinates[0] for _, val in map.items()]
+    y_coords = [val.coordinates[1] for _, val in map.items()]
+    return (min(x_coords), max(x_coords),
+            min(y_coords), max(y_coords))
+
+
+def calculate_window_size(
+        const: ConstantParameters,
+        boundary: Tuple[int, int, int, int]) -> Tuple[int, int]:
+    x_max = boundary[1] * const.mul + const.x_offset
+    if x_max > const.win_w:
+        const.win_w = x_max + const.sq_len * 3
+    # y_min = boundary[2] * const.mul + const.y_offset
+    y_max = (boundary[3] - boundary[2] + 1) * const.mul + const.y_offset
+    print(boundary, x_max, y_max)
+    if y_max > const.win_h:
+        const.win_h = y_max + const.sq_len * 6
+    const.y_cent = const.y_offset + \
+        int((const.win_h - const.y_offset) * ((abs(boundary[2]) + 1) /
+                                              (abs(boundary[3]) + abs(boundary[2]) + 2)))
+    return (const.win_w, const.win_h)

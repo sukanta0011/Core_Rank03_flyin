@@ -1,7 +1,8 @@
+import cProfile
 from srcs.parser.MapParser import MapParser
 from srcs.simulator.PathFinder import DepthFirstSearch
 from srcs.simulator.Simulator import SimpleSimulator
-from srcs.visualizer.GraphVisualizer import GraphVisualizer
+from srcs.visualizer.GraphVisualizer import ConstantParameters, GraphVisualizer
 from srcs.mlx_tools.LetterToImageMapper import LetterToImageMapper
 from srcs.mlx_tools.ImageOperations import(
     ImageScaler,
@@ -10,7 +11,9 @@ from srcs.mlx_tools.ImageOperations import(
 from srcs.simulator.helpers import (
     format_valid_paths_into_list,
     create_valid_graph,
-    sort_map_by_priority
+    sort_map_by_priority,
+    get_min_max_coordinates_from_map,
+    calculate_window_size
     )
 
 
@@ -41,8 +44,12 @@ def main():
         simple_sim = SimpleSimulator(graph=map, valid_paths=paths,
                                      drones=drones)
         drones = simple_sim.get_drones()
-        graph_visual = GraphVisualizer(map, 2400, 800, valid_map,
-                                       simple_sim, drones)
+        const = ConstantParameters()
+        w, h = calculate_window_size(const,
+                                     get_min_max_coordinates_from_map(map))
+        print(w, h, const.y_cent)
+        graph_visual = GraphVisualizer(map, w, h, valid_map,
+                                       simple_sim, drones, const)
 
         letter_map = LetterToImageMapper(graph_visual.get_mlx())
         letter_map.create_map()
@@ -67,5 +74,6 @@ def main():
 
 
 if __name__ == "__main__":
+    # cProfile.run('main()')
     main()
     # mlx_test()

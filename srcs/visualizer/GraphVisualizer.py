@@ -19,22 +19,27 @@ from srcs.visualizer.DroneAnimation import drone_animation_translation
 
 class ConstantParameters:
     def __init__(self) -> None:
-        self.sq_len = 46
-        self.mul = 120
+        self.sq_len = 50
+        self.mul = 150
         self.x_offset = 500
+        self.y_offset = 200
+        self.y_cent = 200
         self.fractional_move = 0.05
+        self.win_w = 800
+        self.win_h = 400
+        self.header_bg = 0xff2ebdca
 
 
 class GraphVisualizer(MyMLX):
     def __init__(self, graph: Dict[str, Zone], w: int, h: int,
                  valid_paths: Dict[str, List], simulator: Simulator,
-                 drones: List[Drone]):
+                 drones: List[Drone], const: ConstantParameters):
         super().__init__(w, h)
         self.graph = graph
         self.drones = drones
         self.valid_paths = valid_paths
         self.simulator = simulator
-        self.const = ConstantParameters()
+        self.const = const
         self.counter = 0
         self.move_txt = "Move: 0"
         self.generate_shape = ShapeGenerator(self.mlx)
@@ -105,50 +110,61 @@ class GraphVisualizer(MyMLX):
             self.mlx, self.mlx.static_bg, str(capacity), (x_txt, y_txt), 0.5)
 
     def generate_header(self):
+        self.set_background(self.mlx.static_bg, (0, 0),
+                            self.const.win_w,
+                            self.const.y_offset, self.const.header_bg)
+        # self.set_background(self.mlx.static_bg, (0, self.const.y_offset),
+        #                     self.const.x_offset, self.const.win_h - self.const.y_offset,
+        #                     0xff2ebdca)
+
         self.txt_to_img.print_txt(
             self.mlx, self.mlx.static_bg, "Welcome to FLYIN",
-            (10, 10), font_color=0xFFFF0000)
-        self.generate_shape.draw_line(self.mlx.static_bg, (30, 60), 30, "h", self.rgb_to_hex(g=255))
+            (10, 10), font_color=0xFF000000, bg_color=self.const.header_bg)
+        self.generate_shape.draw_line(self.mlx.static_bg, (30, 60), 30,
+                                      "h", self.rgb_to_hex(g=255), 3)
         self.txt_to_img.print_txt(
             self.mlx, self.mlx.static_bg, "priority",
-            (70, 50), factor=0.5)
-        self.generate_shape.draw_line(self.mlx.static_bg, (30, 90), 30, "h", self.rgb_to_hex(b=255))
+            (70, 50), factor=0.5, font_color=0xFF000000, bg_color=self.const.header_bg)
+        self.generate_shape.draw_line(self.mlx.static_bg, (30, 90), 30,
+                                      "h", self.rgb_to_hex(b=255), 3)
         self.txt_to_img.print_txt(
             self.mlx, self.mlx.static_bg, "restricted",
-            (70, 80), factor=0.5)
-        self.generate_shape.draw_line(self.mlx.static_bg, (30, 120), 30, "h")
+            (70, 80), factor=0.5, font_color=0xFF000000, bg_color=self.const.header_bg)
+        self.generate_shape.draw_line(self.mlx.static_bg, (30, 120), 30, "h", thickness=3)
         self.txt_to_img.print_txt(
             self.mlx, self.mlx.static_bg, "Normal",
-            (70, 110), factor=0.5)
-        self.generate_shape.draw_line(self.mlx.static_bg, (30, 150), 30, "h",  self.rgb_to_hex(r=255))
+            (70, 110), factor=0.5, font_color=0xFF000000, bg_color=self.const.header_bg)
+        self.generate_shape.draw_line(self.mlx.static_bg, (30, 150), 30, "h",  self.rgb_to_hex(r=255), 3)
         self.txt_to_img.print_txt(
             self.mlx, self.mlx.static_bg, "Blocked",
-            (70, 140), factor=0.5)
-        self.generate_shape.draw_line(self.mlx.static_bg, (0, 200), self.mlx.buff_img.w, "h", 0xff2ebdca)
+            (70, 140), factor=0.5, font_color=0xFF000000, bg_color=self.const.header_bg)
+        # self.generate_shape.draw_line(self.mlx.static_bg, (0, 200), self.mlx.buff_img.w, "h", 0xff2ebdca)
 
     def generate_map(self, valid_paths: Dict[str, List]):
         for key, zone in self.graph.items():
             coord = zone.coordinates
             color = 0xFFFFFFFF
             xi = coord[0] * self.const.mul + self.const.x_offset
-            yi = coord[1] * self.const.mul + self.h // 2
+            yi = coord[1] * self.const.mul + self.const.y_cent
             # print(f"Coords: {coord}, {xi}, {yi}")
             if zone.color is not None:
                 hex_str = self.color_name_to_code(zone.color)
                 color = 0xFF000000 | int(hex_str[1:], 16)
             # self.draw_all_zones(self.mlx, (xi, yi), self.const.sq_len,
             #                     zone.name, color, zone.capacity)
-            self.generate_shape.draw_square(self.mlx.static_bg, (xi, yi), self.const.sq_len, color)
+            self.generate_shape.draw_square(self.mlx.static_bg, (xi, yi),
+                                            self.const.sq_len, color)
             # self.fill_zone_wih_drones(self.mlx, scale_params.sq_len // 2, (xi + 3, yi + 10),
             #                           scale_params.sq_len, zone.occupancy)
             self.print_txt(self.mlx, self.mlx.static_bg,
-                           (xi, yi + int(self.const.sq_len * 2 / 3)), zone.name, "_", 0.3)
+                           (xi, yi + int(self.const.sq_len * 2 / 3)),
+                           zone.name, "_", 0.3)
             valid_links = valid_paths[key]
             # print(zone.name, xi, yi, self.h // 2)
             for link in zone.links:
                 coord = link.target.coordinates
                 xf = coord[0] * self.const.mul + self.const.x_offset
-                yf = coord[1] * self.const.mul + self.h // 2
+                yf = coord[1] * self.const.mul + self.const.y_cent
                 # print(zone.name, link.target.name, xi, xf, yi, yf)
                 self.print_link_capacity((xi, xf), (yi, yf), link.capacity)
                 if link.target.name in valid_links:
@@ -158,32 +174,39 @@ class GraphVisualizer(MyMLX):
                             self.const.sq_len, self.rgb_to_hex(g=255))
                     elif link.target.zone_type.value == "restricted":
                         self.generate_shape.connect_two_square(
-                            self.mlx.static_bg, (xi, yi), (xf, yf), self.const.sq_len,
+                            self.mlx.static_bg, (xi, yi), (xf, yf),
+                            self.const.sq_len,
                             self.rgb_to_hex(b=255))
                     else:
                         self.generate_shape.connect_two_square(
-                            self.mlx.static_bg, (xi, yi), (xf, yf), self.const.sq_len)
+                            self.mlx.static_bg, (xi, yi), (xf, yf),
+                            self.const.sq_len)
                 else:
                     self.generate_shape.connect_two_square(
-                        self.mlx.static_bg, (xi, yi), (xf, yf), self.const.sq_len,
+                        self.mlx.static_bg, (xi, yi), (xf, yf),
+                        self.const.sq_len,
                         self.rgb_to_hex(r=255))
         copy_img(self.mlx.buff_img, self.mlx.static_bg, (0, 0))
         self.put_buffer_image()
 
     def update_map(self, simulator: Simulator):
-        # self.mlx.mlx.mlx_clear_window(self.mlx.mlx_ptr, self.mlx.win_ptr)
-        drone_movement = self.simulator.next_move(self.valid_paths)
-        if len(drone_movement) == 0:
-            print("All drones reached to the goal")
-            self.move_txt = f"Move: {self.counter}\nCongratulation."\
-                            "\nSimulation completed."     
+        # self.mlx.mlx.mlx_clear_window(self.mlx.mlx_ptr, self.mlx.win_ptr)\
+        drones_moving = [drone.moving for drone in self.drones]
+        if True not in drones_moving:
+            drone_movement = self.simulator.next_move(self.valid_paths)
+            if len(drone_movement) == 0:
+                print("All drones reached to the goal")
+                self.move_txt = f"Move: {self.counter}\nCongratulation."\
+                                "\nSimulation completed."     
+            else:
+                print(drone_movement)
+                self.counter += 1
+                self.move_txt = f"Move: {self.counter}"
+                # self.print_txt(self.mlx, self.mlx.buff_img,
+                #                (100, 100), drone_movement, " ", 0.4)
+            # self.generate_map(self.valid_paths)
         else:
-            print(drone_movement)
-            self.counter += 1
-            self.move_txt = f"Move: {self.counter}"
-            # self.print_txt(self.mlx, self.mlx.buff_img,
-            #                (100, 100), drone_movement, " ", 0.4)
-        # self.generate_map(self.valid_paths)
+            print("Drones are moving, please wait.")
 
 
 def mlx_test():

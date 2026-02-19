@@ -16,6 +16,7 @@ class Drone:
         self.moves = 0
         self.txt: str = ""
         self.link = None
+        self.moving = False
 
     def update_pos(self, curr_pos: Zone):
         self.pos = curr_pos

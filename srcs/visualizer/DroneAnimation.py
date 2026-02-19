@@ -9,6 +9,10 @@ if TYPE_CHECKING:
     from srcs.visualizer.GraphVisualizer import ConstantParameters
 
 
+def clean_last_drone_pos():
+    pass
+
+
 def drone_animation_translation(
         params: Tuple[MlxVar, ConstantParameters,
                       List[Drone], Dict[str, Zone]]):
@@ -23,10 +27,12 @@ def drone_animation_translation(
         xf, yf = drone.target_pos
         xi, yi = drone.last_pos
         xc, yc = drone.current_pos
-        distance = math.sqrt((yf - yc)**2 + (xf - xc)**2)
+        drone.moving = False
+        distance = (yf - yc)**2 + (xf - xc)**2
         # print(xi, yi, xf, yf, xc, yc, xc >= xf, yc >= yf)
-        if distance > 0.05:
+        if distance > 0.0025:
             all_drone_moved = False
+            drone.moving = True
             if xf - xi == 0:
                 # print("Vertical")
                 yc += (yf - yi) * const.fractional_move
@@ -44,13 +50,13 @@ def drone_animation_translation(
             drone_info += f"{drone.txt} "
         drone.current_pos = [xc, yc]
         xc_scaled = int(xc * const.mul + const.x_offset)
-        yc_scaled = int(yc * const.mul + mlx_var.buff_img.h // 2)
+        yc_scaled = int(yc * const.mul + const.y_cent)
 
         copy_img(mlx_var.buff_img, mlx_var.drone_img,
-                           (xc_scaled - mlx_var.drone_img.w // 2,
-                            yc_scaled - mlx_var.drone_img.h // 2))
+                 (xc_scaled - mlx_var.drone_img.w // 2,
+                  yc_scaled - mlx_var.drone_img.h // 2))
         func_txt(mlx_var, mlx_var.buff_img, (xc_scaled - mlx_var.drone_img.w // 2,
-             yc_scaled - mlx_var.drone_img.h), drone.name, " ", 0.3)
+                 yc_scaled - mlx_var.drone_img.h), drone.name, " ", 0.3)
     func_move(mlx_var, mlx_var.buff_img, (50, 210), "", "_",
               0.5, 0xFF00FF00)
     if len(drone_info) > 0:
@@ -58,7 +64,7 @@ def drone_animation_translation(
     for _, zone in zones.items():
         coord = zone.coordinates
         xi = coord[0] * const.mul + const.x_offset
-        yi = coord[1] * const.mul + mlx_var.buff_img.h // 2
+        yi = coord[1] * const.mul + const.y_cent
         func_txt(mlx_var, mlx_var.buff_img,
                  (xi - 40, yi - 45), f"{zone.capacity}:{zone.occupancy}", " ", 0.4)
     # print([drone.name for drone in drones])
@@ -67,7 +73,7 @@ def drone_animation_translation(
     mlx_var.mlx.mlx_put_image_to_window(mlx_var.mlx_ptr, mlx_var.win_ptr,
                                         mlx_var.buff_img.img, 0, 0)
     if all_drone_moved:
-        pass
+        drone.moving
 
 
 # def drone_animation_hovering(params: Tuple[MlxVar, str]):

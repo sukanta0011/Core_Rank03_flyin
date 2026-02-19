@@ -33,7 +33,7 @@ class MyMLX:
             self.mlx.mlx_ptr, self.w, self.h, "GUI")
         self.mlx.buff_img = generate_blank_image(self.mlx, self.w, self.h)
         self.mlx.static_bg = generate_blank_image(self.mlx, self.w, self.h)
-        self.set_background(self.mlx.static_bg)
+        self.set_background(self.mlx.static_bg, (0, 0), self.w, self.h)
         # print(f"Buffer image: {self.mlx.mlx.mlx_get_data_addr(self.mlx.buff_img.img)}")
         self.mlx.mlx.mlx_clear_window(self.mlx.mlx_ptr, self.mlx.win_ptr)
         self.mlx.mlx.mlx_mouse_hook(self.mlx.win_ptr, self.mymouse, self.mlx)
@@ -73,9 +73,18 @@ class MyMLX:
         else:
             print("Error: buffer image is not set")
 
-    def set_background(self, img: ImgData, color=0xFF000000):
+    def set_background(self, img: ImgData, center: Tuple,
+                       w: int, h: int, color=0xFF000000):
+        if w > img.w:
+            w = img.w
+        if h > img.h:
+            h = img.h
+        xc, yc = center
         pixel_bytes = color.to_bytes(4, 'little')
-        img.data[:] = pixel_bytes * (img.h * img.w)
+        for y in range(yc, yc + h):
+            start = y * img.sl + 4 * xc
+            end = start + 4 * w
+            img.data[start:end] = pixel_bytes * w
 
     def rgb_to_hex(self, r: int = 0, g: int = 0, b: int = 0):
         return 0xFF000000 | r << 16 | g << 8 | b
