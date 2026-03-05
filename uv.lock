@@ -24,7 +24,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "mlx", path = "mlx_CLXV/mlx-2.2-py3-none-any.whl" },
+    { name = "mlx", path = "mlx-2.2-py3-none-any.whl" },
     { name = "prettytable", specifier = ">=3.17.0" },
     { name = "pydantic", specifier = ">=2.12.5" },
     { name = "webcolors", specifier = ">=25.10.0" },
@@ -33,7 +33,7 @@ requires-dist = [
 [[package]]
 name = "mlx"
 version = "2.2"
-source = { path = "mlx_CLXV/mlx-2.2-py3-none-any.whl" }
+source = { path = "mlx-2.2-py3-none-any.whl" }
 wheels = [
     { filename = "mlx-2.2-py3-none-any.whl", hash = "sha256:9a72de34b6b7e3f34cbe47ab8abb10b374204e658c4b5ec1c77de914db3b56cd" },
 ]

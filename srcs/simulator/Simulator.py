@@ -14,6 +14,7 @@ class Drone:
         self.current_pos: List[float] = list(start_pos.coordinates)
         self.target_pos: List[float] = list(start_pos.coordinates)
         self.moves = 0
+        self.total_moves = 0
         self.txt: str = ""
         self.link = None
         self.moving = False
@@ -104,6 +105,7 @@ class SimpleSimulator(Simulator):
                     if drone.get_link() is not None:
                         # print(f"{drone.name} is in transit")
                         drone.increase_move()
+                        drone.total_moves += 1
                         break
                     elif link.free_spaces() > 0:
                         if link.free_spaces() <= link.target.free_spaces():
@@ -112,6 +114,7 @@ class SimpleSimulator(Simulator):
                             drone.pos.free()
                             drone.increase_move()
                             drone.set_link(link)
+                            drone.total_moves += 1
                             break
 
         for drone in self.drones:
@@ -143,5 +146,5 @@ class SimpleSimulator(Simulator):
                             drone_move += f"{drone.name}-{drone.pos.name}"\
                                           f"-{link.target.name} "
                             drone.txt = f"{drone.name}-{drone.pos.name}"\
-                                        f"-{link.target.name}"    
+                                        f"-{link.target.name}"
         return drone_move

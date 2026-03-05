@@ -12,4 +12,4 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-mlx = { path = "mlx_CLXV/mlx-2.2-py3-none-any.whl" }
+mlx = { path = "mlx-2.2-py3-none-any.whl" }
