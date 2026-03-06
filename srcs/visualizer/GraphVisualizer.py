@@ -12,20 +12,11 @@ from .mlx_tools.shape_maker import ShapeGenerator
 from .DroneAnimation import drone_animation_translation
 
 
-# class GraphicsMlxVar(MlxVar):
-#     def __init__(self) -> None:
-#         super().__init__()
-#         self.buff_img = ImgData()
-#         self.static_bg = ImgData()
-#         self.drone_img = ImgData()
-#         self.letter_img = ImgData()
-#         self.letter_map: Dict[str, ImgData] = {}
-
 class ConstantParameters:
     def __init__(self) -> None:
-        self.sq_len = 50
-        self.mul = 150
-        self.x_offset = 500
+        self.sq_len = 40
+        self.mul = 120
+        self.x_offset = 100
         self.y_offset = 200
         self.y_cent = 200
         self.fractional_move = 0.05
@@ -38,7 +29,7 @@ class ConstantParameters:
 class KeyMap:
     """Data class to to store multiple keys for a specific action"""
     MOVE: Tuple[int, int] = (49, 65436)       # Key '1' and Numpad '1'
-    # TOGGLE_PATH: Tuple[int, int] = (50, 65433)  # Key '2' and Numpad '2'
+    AUTO: Tuple[int, int] = (50, 65433)         # Key '2' and Numpad '2'
     # COLOR: Tuple[int, int] = (51, 65435)       # Key '3' and Numpad '3'
     QUIT: Tuple[int, int] = (52, 65430)        # Key '4' and Numpad '4'
 
@@ -54,8 +45,9 @@ class GraphVisualizer(MyMLX):
         self.simulator = simulator
         self.const = const
         self.counter = 0
+        self.ani_counter = 0
         self.move_txt = "Move: 0"
-        self.throughput = []
+        self.throughput: List[int] = []
         self.init_letter_map()
         self.start_animation()
 
@@ -87,31 +79,28 @@ class GraphVisualizer(MyMLX):
         if keynum in KeyMap.QUIT:
             self.stop_mlx(self.mlx)
 
-    # def stop_mlx(self):
-    #     self.mlx.mlx.mlx_destroy_image(self.mlx.mlx_ptr, self.mlx.drone_img.img)
-    #     self.mlx.mlx.mlx_destroy_image(self.mlx.mlx_ptr, self.mlx.letter_img.img)
-    #     for _, img in self.mlx.letter_map.items():
-    #         self.mlx.mlx.mlx_destroy_image(self.mlx.mlx_ptr, img.img)
-    #     return super().stop_mlx()
-
     def start_animation(self):
         self.mlx.mlx.mlx_loop_hook(self.mlx.mlx_ptr,
                                    drone_animation_translation,
                                    (self.mlx, self.const,
                                     self.drones, self.graph,
                                     self.print_move, self.print_txt,
-                                    self.print_throughput))
+                                    self.print_throughput, self.print_cost,
+                                    self.animation_counter))
+
+    def animation_counter(self):
+        if self.ani_counter < 360:
+            self.ani_counter += 5
+        else:
+            self.ani_counter = 0
+        return self.ani_counter
 
     def print_txt(self, mlx_var: MlxVar, img: ImgData,
                   center: Tuple, name: str, split_by: str,
                   factor: float, font_clr=0xffffffff, bg_clr=0x00000000):
-        x, y = center
-        split_names = name.split(split_by)
-        for name in split_names:
-            self.txt_to_image.print_txt(
-                self.mlx, img, name, (x, y), factor,
-                font_clr, bg_clr)
-            y += int(50 * factor)
+        self.txt_to_image.print_txt(
+            self.mlx, img, name, center, factor,
+            font_clr, bg_clr)
 
     def print_move(self, mlx_var: MlxVar, img: ImgData,
                    center: Tuple, name: str, split_by: str,
@@ -119,21 +108,47 @@ class GraphVisualizer(MyMLX):
         x, y = center
         split_names = self.move_txt.split('\n')
         for name in split_names:
-            self.txt_to_image.print_txt(
+            x = self.txt_to_image.print_txt(
                 self.mlx, img, name, (x, y), factor,
-                font_clr, bg_clr)
-            y += int(50 * factor)
-    
+                font_clr, bg_clr) + 10
+            # y += int(50 * factor)
+
     def print_throughput(self, mlx_var: MlxVar, img: ImgData,
                    center: Tuple, name: str, split_by: str,
                    factor: float, font_clr=0xffffffff, bg_clr=0x00000000):
         x, y = center
+        initial_y = y
         for info in self.throughput:
+            y = initial_y
+            # ShapeGenerator.draw_line(
+            #     self.mlx, self.mlx.buff_img,
+            #     (x, y - info[1]), info[1], "v", 0xFFFF0000, 3)
+            for i in range(info[1]):
+                ShapeGenerator.draw_line(
+                    self.mlx, img, (x, y - 2),
+                    2, "v", 0xFFFFF00F, 20)
+                y -= 3
             self.txt_to_image.print_txt(
-                self.mlx, img, f"{info[0]}: {info[1]}", (x, y), factor,
-                font_clr, bg_clr)
-            y += int(50 * factor)
-        
+                self.mlx, img, str(info[1]), (x - 5, y - 20), factor,
+                0xFF000000, self.const.header_bg)
+            x += 25
+
+    def print_cost(self, mlx_var: MlxVar, img: ImgData,
+                   center: Tuple, name: str, split_by: str,
+                   factor: float, font_clr=0xffffffff, bg_clr=0x00000000):
+        x, y = center
+        initial_y = y
+        for drone in self.drones:
+            y = initial_y
+            for _ in range(drone.total_moves):
+                ShapeGenerator.draw_line(
+                    self.mlx, img, (x, y - 2),
+                    2, "v", 0xFFFFFF00, 20)
+                y -= 3
+            self.txt_to_image.print_txt(
+                self.mlx, img, str(drone.total_moves), (x - 5, y - 20), factor,
+                0xFF000000, self.const.header_bg)
+            x += 25
 
     def set_drone_image(self, img: ImgData) -> None:
         self.mlx.drone_img = img
@@ -225,21 +240,20 @@ class GraphVisualizer(MyMLX):
                 self.print_link_capacity((xi, xf), (yi, yf), link.capacity)
                 if link.target.name in valid_links:
                     if link.target.zone_type.value == "priority":
-                        ShapeGenerator.connect_two_square(self.mlx,
-                            self.mlx.static_bg, (xi, yi), (xf, yf),
+                        ShapeGenerator.connect_two_square(
+                            self.mlx, self.mlx.static_bg, (xi, yi), (xf, yf),
                             self.const.sq_len, self.rgb_to_hex(g=255))
                     elif link.target.zone_type.value == "restricted":
-                        ShapeGenerator.connect_two_square(self.mlx,
-                            self.mlx.static_bg, (xi, yi), (xf, yf),
-                            self.const.sq_len,
-                            self.rgb_to_hex(b=255))
+                        ShapeGenerator.connect_two_square(
+                            self.mlx, self.mlx.static_bg, (xi, yi), (xf, yf),
+                            self.const.sq_len, self.rgb_to_hex(b=255))
                     else:
-                        ShapeGenerator.connect_two_square(self.mlx,
-                            self.mlx.static_bg, (xi, yi), (xf, yf),
+                        ShapeGenerator.connect_two_square(
+                            self.mlx, self.mlx.static_bg, (xi, yi), (xf, yf),
                             self.const.sq_len)
                 else:
-                    ShapeGenerator.connect_two_square(self.mlx,
-                        self.mlx.static_bg, (xi, yi), (xf, yf),
+                    ShapeGenerator.connect_two_square(
+                        self.mlx, self.mlx.static_bg, (xi, yi), (xf, yf),
                         self.const.sq_len,
                         self.rgb_to_hex(r=255))
         ImageOperations.copy_img(self.mlx.buff_img, self.mlx.static_bg, (0, 0))
@@ -252,17 +266,17 @@ class GraphVisualizer(MyMLX):
             drone_movement = self.simulator.next_move(self.valid_paths)
             if len(drone_movement) == 0:
                 print("All drones reached to the goal")
-                self.move_txt = f"Move: {self.counter}\nCongratulation."\
-                                "\nSimulation completed."
+                self.move_txt = f"Move: {self.counter} "\
+                                "Simulation completed!"
             else:
                 # print(drone_movement)
                 drone_moved = drone_movement.split(" ")
                 self.counter += 1
                 self.move_txt = f"Move: {self.counter}"
-                print(f"Move no: {self.counter}, Drones Moved: {len(drone_moved) - 1}")
+                # print(f"Move no: {self.counter}, Drones Moved: {len(drone_moved) - 1}")
                 self.throughput.append((self.counter, len(drone_moved) - 1))
-                for drone in self.drones:
-                    print(f"{drone.name}: {drone.total_moves}")
+                # for drone in self.drones:
+                #     print(f"{drone.name}: {drone.total_moves}")
                 # self.print_txt(self.mlx, self.mlx.buff_img,
                 #                (100, 100), drone_movement, " ", 0.4)
             # self.generate_map(self.valid_paths)
@@ -270,53 +284,53 @@ class GraphVisualizer(MyMLX):
             print("Drones are moving, please wait.")
 
 
-def mlx_test():
-    mlx_var = MyMLX('flyin', 800, 600)
-    ShapeGenerator.draw_line(mlx_var.mlx, mlx_var.mlx.static_bg, (5, 5), 600, "h", 0x0000FFFF)
-    ShapeGenerator.draw_hollow_square(mlx_var.mlx, mlx_var.mlx.static_bg, (200, 150), 20)
-    ShapeGenerator.draw_hollow_square(mlx_var.mlx, mlx_var.mlx.static_bg, (250, 300), 20)
-    ShapeGenerator.connect_two_square(mlx_var.mlx, mlx_var.mlx.static_bg, (200, 150), (250, 300), 20)
-    ShapeGenerator.draw_hollow_square(mlx_var.mlx, mlx_var.mlx.static_bg, (250, 150), 20)
-    ShapeGenerator.draw_hollow_square(mlx_var.mlx, mlx_var.mlx.static_bg, (450, 300), 20)
-    ShapeGenerator.connect_two_square(mlx_var.mlx, mlx_var.mlx.static_bg, (250, 150), (450, 300), 20)
+# def mlx_test():
+#     mlx_var = MyMLX('flyin', 800, 600)
+#     ShapeGenerator.draw_line(mlx_var.mlx, mlx_var.mlx.static_bg, (5, 5), 600, "h", 0x0000FFFF)
+#     ShapeGenerator.draw_hollow_square(mlx_var.mlx, mlx_var.mlx.static_bg, (200, 150), 20)
+#     ShapeGenerator.draw_hollow_square(mlx_var.mlx, mlx_var.mlx.static_bg, (250, 300), 20)
+#     ShapeGenerator.connect_two_square(mlx_var.mlx, mlx_var.mlx.static_bg, (200, 150), (250, 300), 20)
+#     ShapeGenerator.draw_hollow_square(mlx_var.mlx, mlx_var.mlx.static_bg, (250, 150), 20)
+#     ShapeGenerator.draw_hollow_square(mlx_var.mlx, mlx_var.mlx.static_bg, (450, 300), 20)
+#     ShapeGenerator.connect_two_square(mlx_var.mlx, mlx_var.mlx.static_bg, (250, 150), (450, 300), 20)
 
-    result = mlx_var.mlx.mlx.mlx_xpm_file_to_image(mlx_var.mlx.mlx_ptr,
-                                                   "images/drone1.xpm")
-    mlx_var.mlx.drone_img.img, mlx_var.mlx.drone_img.w,\
-        mlx_var.mlx.drone_img.h = result
-    mlx_var.mlx.drone_img.data, mlx_var.mlx.drone_img.bpp, \
-        mlx_var.mlx.drone_img.sl, mlx_var.mlx.drone_img.iformat = \
-        mlx_var.mlx.mlx.mlx_get_data_addr(mlx_var.mlx.drone_img.img)
-    print(mlx_var.mlx.drone_img.w, mlx_var.mlx.drone_img.h)
-    # copy_img_to_buffer(mlx_var.static_bg, mlx_var.drone_img, (100, 100))
-    # set_buffer_image_background(mlx_var.buff_img, 400, 600, 0xFF00FFFF)
-    # copy_img_to_buffer(mlx_var.buff_img, mlx_var.drone_img, (100, 200))
+#     result = mlx_var.mlx.mlx.mlx_xpm_file_to_image(mlx_var.mlx.mlx_ptr,
+#                                                    "images/drone1.xpm")
+#     mlx_var.mlx.drone_img.img, mlx_var.mlx.drone_img.w,\
+#         mlx_var.mlx.drone_img.h = result
+#     mlx_var.mlx.drone_img.data, mlx_var.mlx.drone_img.bpp, \
+#         mlx_var.mlx.drone_img.sl, mlx_var.mlx.drone_img.iformat = \
+#         mlx_var.mlx.mlx.mlx_get_data_addr(mlx_var.mlx.drone_img.img)
+#     print(mlx_var.mlx.drone_img.w, mlx_var.mlx.drone_img.h)
+#     # copy_img_to_buffer(mlx_var.static_bg, mlx_var.drone_img, (100, 100))
+#     # set_buffer_image_background(mlx_var.buff_img, 400, 600, 0xFF00FFFF)
+#     # copy_img_to_buffer(mlx_var.buff_img, mlx_var.drone_img, (100, 200))
 
-    # draw_square(mlx_var, (100, 200), 40)
-    # draw_square(mlx_var, (300, 100), 40)
-    # connect_two_square(mlx_var, (100, 200), (300, 100), 40)
-    # draw_square(mlx_var, (300, 300), 40)
-    # connect_two_square(mlx_var, (100, 200), (300, 300), 40)
-    # draw_square(mlx_var, (400, 200), 40)
-    # connect_two_square(mlx_var, (400, 200), (300, 100), 40)
-    # connect_two_square(mlx_var, (400, 200), (300, 300), 40)
-    zone1 = Zone("zone1", 0, 0)
-    zone2 = Zone("zone2", 1, 0)
-    zone3 = Zone("zone3", 2, -1)
-    drone1 = Drone(0, zone1)
-    drone1.target_pos = list(zone2.coordinates)
-    drone2 = Drone(1, zone2)
-    drone2.target_pos = list(zone3.coordinates)
-    # drone2.current_coords = [1, 0]
+#     # draw_square(mlx_var, (100, 200), 40)
+#     # draw_square(mlx_var, (300, 100), 40)
+#     # connect_two_square(mlx_var, (100, 200), (300, 100), 40)
+#     # draw_square(mlx_var, (300, 300), 40)
+#     # connect_two_square(mlx_var, (100, 200), (300, 300), 40)
+#     # draw_square(mlx_var, (400, 200), 40)
+#     # connect_two_square(mlx_var, (400, 200), (300, 100), 40)
+#     # connect_two_square(mlx_var, (400, 200), (300, 300), 40)
+#     zone1 = Zone("zone1", 0, 0)
+#     zone2 = Zone("zone2", 1, 0)
+#     zone3 = Zone("zone3", 2, -1)
+#     drone1 = Drone(0, zone1)
+#     drone1.target_pos = list(zone2.coordinates)
+#     drone2 = Drone(1, zone2)
+#     drone2.target_pos = list(zone3.coordinates)
+#     # drone2.current_coords = [1, 0]
 
-    scale = ConstantParameters()
+#     scale = ConstantParameters()
 
-    # mlx_var.mlx.mlx_put_image_to_window(mlx_var.mlx_ptr, mlx_var.win_ptr,
-    #                                     mlx_var.buff_img.img, 0, 0)
-    mlx_var.mlx.mlx.mlx_loop_hook(mlx_var.mlx.mlx_ptr,
-                              drone_animation_translation,
-                              (mlx_var.mlx, scale, [drone1, drone2], {}, ))
-    mlx_var.start_mlx()
+#     # mlx_var.mlx.mlx_put_image_to_window(mlx_var.mlx_ptr, mlx_var.win_ptr,
+#     #                                     mlx_var.buff_img.img, 0, 0)
+#     mlx_var.mlx.mlx.mlx_loop_hook(mlx_var.mlx.mlx_ptr,
+#                               drone_animation_translation,
+#                               (mlx_var.mlx, scale, [drone1, drone2], {}, ))
+#     mlx_var.start_mlx()
 
 
 if __name__ == "__main__":

@@ -144,21 +144,21 @@ class ImageOperations:
                 h = dest.h - start_y
             else:
                 h = src.h
-        else:
-            raise ParametersError(
-                "(fn :ImageOperations.copy_img) "
-                "Source image dimension is bigger than destination image")
-        for y in range(h):
-            dest_start = (start_y + y) * dest.sl + (4 * start_x)
-            dest_end = dest_start + (4 * w)
-            src_start = y * sl
-            src_end = src_start + (w * 4)
-            if dest.data is not None and src.data is not None:
-                dest.data[dest_start:dest_end] = src.data[src_start:src_end]
-            else:
-                raise OperationError(
-                    "Cropping failed, The dest or src image is empty"
-                )
+        # else:
+        #     raise ParametersError(
+        #         "(fn :ImageOperations.copy_img) "
+        #         "Source image dimension is bigger than destination image")
+            for y in range(h):
+                dest_start = (start_y + y) * dest.sl + (4 * start_x)
+                dest_end = dest_start + (4 * w)
+                src_start = y * sl
+                src_end = src_start + (w * 4)
+                if dest.data is not None and src.data is not None:
+                    dest.data[dest_start:dest_end] = src.data[src_start:src_end]
+                # else:
+                #     raise OperationError(
+                #         "Cropping failed, The dest or src image is empty"
+                #     )
 
     @staticmethod
     def crop_img(dest: ImgData, src: ImgData, center: Tuple[int, int]) -> None:
@@ -193,20 +193,20 @@ class ImageOperations:
                 h = src.h - start_y
             else:
                 h = dest.h
-        else:
-            raise ParametersError(
-                "Source image dimension is bigger than destination image")
-        for y in range(h):
-            dest_start = y * sl
-            dest_end = dest_start + (4 * w)
-            src_start = (start_y + y) * src.sl + (4 * start_x)
-            src_end = src_start + (4 * w)
-            if dest.data is not None and src.data is not None:
-                dest.data[dest_start:dest_end] = src.data[src_start:src_end]
-            else:
-                raise OperationError(
-                    "Cropping failed, The dest or src image is empty"
-                )
+        # else:
+        #     raise ParametersError(
+        #         "Source image dimension is bigger than destination image")
+            for y in range(h):
+                dest_start = y * sl
+                dest_end = dest_start + (4 * w)
+                src_start = (start_y + y) * src.sl + (4 * start_x)
+                src_end = src_start + (4 * w)
+                if dest.data is not None and src.data is not None:
+                    dest.data[dest_start:dest_end] = src.data[src_start:src_end]
+                # else:
+                #     raise OperationError(
+                #         "Cropping failed, The dest or src image is empty"
+                #     )
 
     @staticmethod
     def set_pixel(img: ImgData, center: int | Tuple[int, int],
@@ -423,6 +423,7 @@ class TxtToImage:
             OperationError: If rendering fails for any character in the string.
         """
         x, y = origin
+        initial_x = x
         for letter in txt:
             try:
                 comb_key = f"{letter}_{factor}_{font_color}_{bg_color}"
@@ -437,6 +438,9 @@ class TxtToImage:
                                             bg_color)
                     if img is not None:
                         self.extended_letter_map[comb_key] = img
+                if (x + img.w) > mlx.static_bg.w:
+                    y += int(50 * factor)
+                    x = initial_x
                 ImageOperations.copy_img(buff_img, img, (x, y))
                 x += img.w
             except Exception as e:
@@ -446,58 +450,60 @@ class TxtToImage:
         return x
 
 
-# def tester():
-#     from srcs.mlx_tools.LetterToImageMapper import LetterToImageMapper
-#     from srcs.mlx_tools.BaseMLX import MyMLX
-#     try:
-#         mlx = MyMLX(1000, 800)
-#         # image = "images/alphabets.xpm"
-#         letter_map = LetterToImageMapper(mlx.mlx)
-#         # copy_img_to_buffer(mlx.mlx.buff_img, mlx.mlx.letter_img, (0, 0))
-#         letter_map.create_map()
-#         ImageOperations.copy_img(
-#             mlx.mlx.buff_img, mlx.mlx.base_letter_map["A"], (0, 0))
-#         ImageOperations.copy_img(
-#             mlx.mlx.buff_img, mlx.mlx.base_letter_map["e"], (50, 0))
-#         ImageOperations.copy_img(
-#             mlx.mlx.buff_img, mlx.mlx.base_letter_map["1"], (150, 0))
-#         ImageOperations.copy_img(
-#             mlx.mlx.buff_img, mlx.mlx.base_letter_map["("], (100, 0))
-#         ImageOperations.copy_img(
-#             mlx.mlx.buff_img, mlx.mlx.base_letter_map[")"], (200, 0))
-#         scaler = ImageScaler()
-#         scaled_a = scaler.process(mlx.mlx, mlx.mlx.base_letter_map["A"], 0.5)
-#         ImageOperations.copy_img(mlx.mlx.buff_img, scaled_a, (250, 0))
+def tester():
+    from srcs.visualizer.mlx_tools.letter_to_img_map import LetterToImageMapper
+    from srcs.visualizer.mlx_tools.base_mlx import MyMLX
+    try:
+        mlx = MyMLX("", 1000, 800)
+        # image = "images/alphabets.xpm"
+        letter_map = LetterToImageMapper(mlx.mlx)
+        # copy_img_to_buffer(mlx.mlx.buff_img, mlx.mlx.letter_img, (0, 0))
+        letter_map.create_map()
+        ImageOperations.copy_img(
+            mlx.mlx.buff_img, mlx.mlx.base_letter_map["A"], (0, 0))
+        ImageOperations.copy_img(
+            mlx.mlx.buff_img, mlx.mlx.base_letter_map["e"], (50, 0))
+        ImageOperations.copy_img(
+            mlx.mlx.buff_img, mlx.mlx.base_letter_map["1"], (150, 0))
+        ImageOperations.copy_img(
+            mlx.mlx.buff_img, mlx.mlx.base_letter_map["("], (100, 0))
+        ImageOperations.copy_img(
+            mlx.mlx.buff_img, mlx.mlx.base_letter_map[")"], (200, 0))
+        scaler = ImageScaler()
+        scaled_a = scaler.process(mlx.mlx, mlx.mlx.base_letter_map["A"], 0.5)
+        ImageOperations.copy_img(mlx.mlx.buff_img, scaled_a, (250, 0))
 
-#         letter_color = TxtColorChanger()
-#         colored_a = letter_color.process(mlx.mlx,
-#                       mlx.mlx.base_letter_map["A"])
+        letter_color = TxtColorChanger()
+        colored_a = letter_color.process(mlx.mlx,
+                      mlx.mlx.base_letter_map["A"])
 
-#         txt_to_img = TxtToImage(mlx.mlx.base_letter_map,
-#                                 mlx.mlx.extended_letter_map)
-#         txt_to_img.add_stages(scaler)
-#         txt_to_img.add_stages(letter_color)
-#         txt_to_img.print_txt(mlx.mlx, mlx.mlx.buff_img,
-#                              "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-#                              (0, 180), 0.5)
-#         txt_to_img.print_txt(mlx.mlx, mlx.mlx.buff_img,
-#                              "abcdefghijklmnopqrstuvwxyz",
-#                              (0, 260))
-#         txt_to_img.print_txt(mlx.mlx, mlx.mlx.buff_img,
-#                              "0123456789",
-#                              (0, 340))
-#         txt_to_img.print_txt(mlx.mlx, mlx.mlx.buff_img,
-#                              ".,;:_#'!\"/?<>%&*()",
-#                              (0, 420))
+        txt_to_img = TxtToImage(mlx.mlx.base_letter_map,
+                                mlx.mlx.extended_letter_map)
+        txt_to_img.add_stages(scaler)
+        txt_to_img.add_stages(letter_color)
+        txt_to_img.print_txt(mlx.mlx, mlx.mlx.buff_img,
+                             "ABCDEFGHIJKLMNOPQRSTUVWXYZ " \
+                             "ABCDEFGHIJKLMNOPQRSTUVWXYZ " \
+                             "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                             (0, 180), 1)
+        txt_to_img.print_txt(mlx.mlx, mlx.mlx.buff_img,
+                             "abcdefghijklmnopqrstuvwxyz",
+                             (0, 390))
+        txt_to_img.print_txt(mlx.mlx, mlx.mlx.buff_img,
+                             "0123456789",
+                             (0, 460))
+        txt_to_img.print_txt(mlx.mlx, mlx.mlx.buff_img,
+                             ".,;:_#'!\"/?<>%&*()",
+                             (0, 520))
 
-#         ImageOperations.copy_img(mlx.mlx.buff_img, colored_a, (300, 0))
+        ImageOperations.copy_img(mlx.mlx.buff_img, colored_a, (300, 0))
 
-#         mlx.mlx.mlx.mlx_put_image_to_window(
-#             mlx.mlx.mlx_ptr, mlx.mlx.win_ptr, mlx.mlx.buff_img.img, 0, 0)
-#         mlx.start_mlx()
-#     except Exception as e:
-#         print(f"{type(e).__name__}: {e}")
+        mlx.mlx.mlx.mlx_put_image_to_window(
+            mlx.mlx.mlx_ptr, mlx.mlx.win_ptr, mlx.mlx.buff_img.img, 0, 0)
+        mlx.start_mlx()
+    except Exception as e:
+        print(f"{type(e).__name__}: {e}")
 
 
-# if __name__ == "__main__":
-#     tester()
+if __name__ == "__main__":
+    tester()

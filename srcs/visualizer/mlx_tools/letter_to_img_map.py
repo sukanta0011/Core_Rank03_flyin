@@ -30,7 +30,7 @@ class LetterToImageMapper:
         self.letter_per_row = 9
         self.cap = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         self.small = "abcdefghijklmnopqrstuvwxyz"
-        self.num = "0123456789"
+        self.num = "0123456789-"
         self.symbols = ".,;:_#'!\"/?<>%&*()"
         base_path = Path(__file__).resolve().parent
         self.image = Path.joinpath(base_path, "alphabets.xpm")

@@ -22,10 +22,10 @@ def main():
     # file_path = "maps/medium/03_priority_puzzle.txt"
     # file_path = "maps/hard/01_maze_nightmare.txt"
     # file_path = "maps/hard/02_capacity_hell.txt"
-    file_path = "maps/hard/03_ultimate_challenge.txt"
+    # file_path = "maps/hard/03_ultimate_challenge.txt"
     # file_path = "maps/challenger/01_the_impossible_dream.txt"
     # file_path = "maps/invalid/map1.txt"
-    # file_path = "maps/my_maps/priority_map1.txt"
+    file_path = "maps/my_maps/priority_map1.txt"
     map_parser = MapParser()
     map_parser.parse(file_path)
     # map_parser.show_map()
@@ -45,8 +45,8 @@ def main():
         const = ConstantParameters()
         w, h = calculate_window_size(const,
                                      get_min_max_coordinates_from_map(map))
-        print(w, h, const.y_cent)
-        graph_visual = GraphVisualizer("flyin", map, w, h, valid_map,
+        # print(w, h, const.y_cent)
+        graph_visual = GraphVisualizer(file_path, map, w, h, valid_map,
                                        simple_sim, drones, const)
 
         my_mlx = graph_visual.get_mlx()

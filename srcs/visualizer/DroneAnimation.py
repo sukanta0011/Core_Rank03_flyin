@@ -1,8 +1,11 @@
 from __future__ import annotations
 from typing import Dict, List, Tuple, TYPE_CHECKING
+import random
+import math
+import time
 from srcs.simulator.Simulator import Drone
 from srcs.parser.GraphConstructor import Zone
-from .mlx_tools.base_mlx import MlxVar
+from .mlx_tools.base_mlx import MlxVar, MyMLX
 from .mlx_tools.image_operations import ImageOperations
 if TYPE_CHECKING:
     from srcs.visualizer.GraphVisualizer import ConstantParameters
@@ -11,14 +14,15 @@ if TYPE_CHECKING:
 def drone_animation_translation(
         params: Tuple[MlxVar, ConstantParameters,
                       List[Drone], Dict[str, Zone]]):
-    mlx_var, const, drones, zones, func_move, func_txt, func_throughput = params
+    mlx_var, const, drones, zones,\
+        func_move, func_txt,\
+            func_throughput, func_cost, ani_counter = params
     mlx_var.mlx.mlx_clear_window(mlx_var.mlx_ptr, mlx_var.win_ptr)
     mlx_var.buff_img.data[:] = mlx_var.static_bg.data[:]
-
+    counter = ani_counter()
     all_drone_moved = True
     drone_info = ""
-    # time.sleep(0.01)
-    for drone in drones:
+    for no, drone in enumerate(drones):
         xf, yf = drone.target_pos
         xi, yi = drone.last_pos
         xc, yc = drone.current_pos
@@ -45,7 +49,8 @@ def drone_animation_translation(
             drone_info += f"{drone.txt} "
         drone.current_pos = [xc, yc]
         xc_scaled = int(xc * const.mul + const.x_offset)
-        yc_scaled = int(yc * const.mul + const.y_cent)
+        yc_scaled = int(yc * const.mul + const.y_cent +
+                        10 * math.sin(no + 3.14 * counter / 180))
 
         ImageOperations.copy_img(
             mlx_var.buff_img, mlx_var.drone_img,
@@ -53,13 +58,15 @@ def drone_animation_translation(
              yc_scaled - mlx_var.drone_img.h // 2))
         func_txt(mlx_var, mlx_var.buff_img, (xc_scaled - mlx_var.drone_img.w // 2,
                  yc_scaled - mlx_var.drone_img.h), drone.name, " ", 0.3)
-    func_move(mlx_var, mlx_var.buff_img, (90, 210), "", "_",
-              0.5, 0xFF00FF00)
-    func_throughput(mlx_var, mlx_var.buff_img, (10, 250), "", "_",
-              0.4, 0xFF00FFFF)
-    
+    func_move(mlx_var, mlx_var.buff_img, (600, 20), "", "_",
+              0.4, 0xFF00FF00, 0xff2ebdca)
+    func_throughput(mlx_var, mlx_var.buff_img, (600, 100), "", "_",
+              0.35, 0xFF00FFFF)
+    func_cost(mlx_var, mlx_var.buff_img, (600, 200), "", "_",
+              0.35, 0xFF00FFFF)
+
     if len(drone_info) > 0:
-        func_txt(mlx_var, mlx_var.buff_img, (50, 250), drone_info, " ", 0.4)
+        func_txt(mlx_var, mlx_var.buff_img, (10, 210), drone_info, " ", 0.5)
     for _, zone in zones.items():
         coord = zone.coordinates
         xi = coord[0] * const.mul + const.x_offset
