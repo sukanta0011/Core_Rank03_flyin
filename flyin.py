@@ -1,12 +1,12 @@
 import cProfile
-from srcs.parser.MapParser import MapParser
-from srcs.simulator.PathFinder import DepthFirstSearch
-from srcs.simulator.Simulator import SimpleSimulator
-from srcs.visualizer.GraphVisualizer import ConstantParameters, GraphVisualizer
+from src.parser.map_parser import MapParser
+from src.simulator.path_finder import DepthFirstSearch
+from src.simulator.simulation_engine import SimpleSimulator
+from src.visualizer.map_visualizer import ConstantParameters, GraphVisualizer
 # from srcs.visualizer.mlx_tools.LetterToImageMapper import LetterToImageMapper
-from srcs.visualizer.mlx_tools.image_operations import ImageScaler, ImageOperations
+from src.visualizer.mlx_tools.image_operations import ImageScaler, ImageOperations
 # from srcs.visualizer.mlx_tools.shape_maker import ShapeGenerator
-from srcs.simulator.helpers import (
+from src.simulator.helpers import (
     format_valid_paths_into_list,
     create_valid_graph,
     sort_map_by_priority,
@@ -17,7 +17,7 @@ from srcs.simulator.helpers import (
 
 def main():
     # file_path = "maps/easy/example_map.txt"
-    # file_path = "maps/easy/03_basic_capacity.txt"
+    file_path = "maps/easy/03_basic_capacity.txt"
     # file_path = "maps/medium/02_circular_loop.txt"
     # file_path = "maps/medium/03_priority_puzzle.txt"
     # file_path = "maps/hard/01_maze_nightmare.txt"
@@ -25,7 +25,7 @@ def main():
     # file_path = "maps/hard/03_ultimate_challenge.txt"
     # file_path = "maps/challenger/01_the_impossible_dream.txt"
     # file_path = "maps/invalid/map1.txt"
-    file_path = "maps/my_maps/priority_map1.txt"
+    # file_path = "maps/my_maps/priority_map1.txt"
     map_parser = MapParser()
     map_parser.parse(file_path)
     # map_parser.show_map()
@@ -43,8 +43,8 @@ def main():
                                      drones=drones)
         drones = simple_sim.get_drones()
         const = ConstantParameters()
-        w, h = calculate_window_size(const,
-                                     get_min_max_coordinates_from_map(map))
+        w, h = calculate_window_size(
+            const, get_min_max_coordinates_from_map(map))
         # print(w, h, const.y_cent)
         graph_visual = GraphVisualizer(file_path, map, w, h, valid_map,
                                        simple_sim, drones, const)
