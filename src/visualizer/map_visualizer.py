@@ -210,7 +210,7 @@ class GraphVisualizer(MyMLX):
             self.mlx, self.mlx.static_bg, "4: Quit",
             (250, 150), factor=0.5, font_color=Color.BLACK,
             bg_color=self.const.header_bg)
-        
+
         # Data Matrix
         self.txt_to_image.print_txt(
             self.mlx, self.mlx.static_bg, "Throughput",
@@ -264,7 +264,7 @@ class GraphVisualizer(MyMLX):
                 else:
                     ShapeGenerator.connect_two_square(
                         self.mlx, self.mlx.static_bg, (xi, yi), (xf, yf),
-                        self.const.sq_len, Color.RESTRICTED)
+                        self.const.sq_len, Color.BLOCKED)
         ImageOperations.copy_img(self.mlx.buff_img, self.mlx.static_bg, (0, 0))
         self.put_buffer_image()
 
@@ -272,7 +272,7 @@ class GraphVisualizer(MyMLX):
         # self.mlx.mlx.mlx_clear_window(self.mlx.mlx_ptr, self.mlx.win_ptr)\
         drones_moving = [drone.moving for drone in self.drones]
         if True not in drones_moving:
-            drone_movement = self.simulator.next_move(self.valid_paths)
+            drone_movement = simulator.next_move(self.valid_paths)
             if len(drone_movement) == 0:
                 print("All drones reached to the goal")
                 self.move_txt = f"Move: {self.counter} "\
