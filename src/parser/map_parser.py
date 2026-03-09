@@ -144,6 +144,9 @@ class MapParser:
                                   "is in wrong format")
 
     def _extract_hub_info(self, line_no: int, line: str) -> None:
+        if "drones" not in self.map_dict.keys():
+            raise FormattingError(
+                "'nb_drone' should be the first element in the map")
         split_line = line.split("\n")[0].split(":")
         if len(split_line) == 2:
             if "hubs" not in self.map_dict.keys():
@@ -188,12 +191,12 @@ class MapParser:
                                            " Hub x coordinates need to be "
                                            "positive integer")
                 # check for duplicate coordinates
-                for hub in storage:
-                    # print(storage[hub].coordinates)
-                    if (x, y) == storage[hub].coordinates:
-                        raise CoordinatesError(
-                            f"'{line_no}', {hub_info[0]} and "
-                            f"{storage[hub].name} has same coordinates")
+                # for hub in storage:
+                #     # print(storage[hub].coordinates)
+                #     if (x, y) == storage[hub].coordinates:
+                #         raise CoordinatesError(
+                #             f"'{line_no}', {hub_info[0]} and "
+                #             f"{storage[hub].name} has same coordinates")
 
                 if "start" in hub_type:
                     storage[hub_info[0]] = StartZone(

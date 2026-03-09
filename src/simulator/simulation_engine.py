@@ -1,5 +1,4 @@
 from typing import Dict, List
-# import random
 from abc import ABC, abstractmethod
 # from pydantic import BaseModel
 from src.parser.map_constructor import Zone, Link
@@ -161,16 +160,38 @@ class AdvanceSimulator(Simulator):
                 drone_move += f"Move No: {move_counter}"
             print(f"Total Moves: {move_counter}")
 
+    def _set_drone_params(self, link: Link, drone: Drone) -> None:
+        link.populate()
+        drone.last_pos = list(drone.pos.coordinates)
+        drone.pos.free()
+        drone.increase_move()
+        drone.set_link(link)
+        drone.total_moves += 1
+        drone.waiting_time = 0
+        link.target.populate()
+
     def next_move(self, valid_map: Dict[str, List]) -> str:
         drone_move = ""
-        # print(valid_map)
+        # looking ahead and deciding which nodes going to be free
+        zone_to_be_freed = set()
         for drone in self.drones:
-            drone.waiting_time += 1
-            # print(f"{drone.name} is waiting for {drone.waiting_time}")
-            # print(valid_map[drone.pos.name])
             for hub_name in valid_map[drone.pos.name]:
                 link = self.get_link_obj(hub_name, drone.pos.links)
                 # print(drone.name, link.occupancy, link.target.name)
+                if link is not None:
+                    if drone.get_link() is not None:
+                        break
+                    elif link.free_spaces() > 0:
+                        if link.free_spaces() <= link.target.free_spaces():
+                            zone_to_be_freed.add(drone.pos.name)
+                            break
+        # print(zone_to_be_freed)
+
+        for drone in self.drones:
+            drone.waiting_time += 1
+            for hub_name in valid_map[drone.pos.name]:
+                link = self.get_link_obj(hub_name, drone.pos.links)
+                # print(drone.name, link.free_spaces(), link.target.name)
                 if link is not None:
                     if drone.get_link() is not None:
                         # print(f"{drone.name} is in transit")
@@ -180,13 +201,11 @@ class AdvanceSimulator(Simulator):
                         break
                     elif link.free_spaces() > 0:
                         if link.free_spaces() <= link.target.free_spaces():
-                            link.populate()
-                            drone.last_pos = list(drone.pos.coordinates)
-                            drone.pos.free()
-                            drone.increase_move()
-                            drone.set_link(link)
-                            drone.total_moves += 1
-                            drone.waiting_time = 0
+                            self._set_drone_params(link, drone)
+                            break
+                        elif link.target.name in zone_to_be_freed:
+                            zone_to_be_freed.remove(link.target.name)
+                            self._set_drone_params(link, drone)
                             break
 
         for drone in self.drones:
@@ -201,7 +220,7 @@ class AdvanceSimulator(Simulator):
                             drone.reset_move()
                             # print(f"{drone.name} is in restricted zone")
                             link.free()
-                            link.target.populate()
+                            # link.target.populate()
                             drone.set_link(None)
                             drone.update_pos(link.target)
                             drone.target_pos = list(drone.pos.coordinates)

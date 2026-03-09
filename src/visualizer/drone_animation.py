@@ -52,7 +52,7 @@ def drone_animation_translation(
         drone.current_pos = [xc, yc]
         xc_scaled = int(xc * const.mul + const.x_offset)
         yc_scaled = int(yc * const.mul + const.y_cent +
-                        10 * math.sin(no + 3.14 * counter / 180))
+                        5 * math.sin(no + 3.14 * counter / 180))
 
         ImageOperations.copy_img(
             mlx_var.buff_img, mlx_var.drone_img,

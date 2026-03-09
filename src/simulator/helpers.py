@@ -46,7 +46,7 @@ def create_reverse_valid_graph(hubs_name: List[str],
                                map: Dict[str, Zone]) -> Dict[str, List[str]]:
     priority_paths: Dict[str, List[str]] = {}
     sorted_paths = sorted(paths, key=lambda path: float(path[-1]))
-    print(sorted_paths)
+    # print(sorted_paths)
     for hub in reversed(hubs_name):
         priority_paths[hub] = []
 
@@ -55,7 +55,8 @@ def create_reverse_valid_graph(hubs_name: List[str],
         for path in sorted_paths:
             try:
                 hub_idx = path.index(hub)
-                if hub_idx > 0 and path[hub_idx - 1]:
+                if (hub_idx > 0 and
+                   path[hub_idx - 1] not in priority_paths[hub]):
                     priority_paths[hub].append(path[hub_idx - 1])
             except ValueError:
                 pass

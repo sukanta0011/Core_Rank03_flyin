@@ -1,7 +1,7 @@
 # import cProfile
 from src.parser.map_parser import MapParser
 from src.simulator.path_finder import DepthFirstSearch
-from src.simulator.simulation_engine import SimpleSimulator, AdvanceSimulator
+from src.simulator.simulation_engine import AdvanceSimulator
 from src.visualizer.map_visualizer import ConstantParameters, GraphVisualizer
 # from src.visualizer.mlx_tools.LetterToImageMapper import LetterToImageMapper
 from src.visualizer.mlx_tools.image_operations import (
@@ -13,21 +13,12 @@ from src.simulator.helpers import (
     sort_map_by_priority,
     get_min_max_coordinates_from_map,
     calculate_window_size,
-    create_reverse_valid_graph
     )
 
 
 def main() -> None:
-    # file_path = "invalid_maps/map20.txt"
-    # file_path = "maps/easy/03_basic_capacity.txt"
-    # file_path = "maps/medium/02_circular_loop.txt"
-    # file_path = "maps/medium/03_priority_puzzle.txt"
-    # file_path = "maps/hard/01_maze_nightmare.txt"
-    # file_path = "maps/hard/02_capacity_hell.txt"
-    # file_path = "maps/hard/03_ultimate_challenge.txt"
-    # file_path = "maps/challenger/01_the_impossible_dream.txt"
-    # file_path = "maps/invalid/map1.txt"
-    file_path = "maps/my_maps/priority_map1.txt"
+    # Modify the file path for loading different maps
+    file_path = "maps/easy/03_basic_capacity.txt"
     map_parser = MapParser()
     map_parser.parse(file_path)
     # map_parser.show_map()
@@ -41,14 +32,7 @@ def main() -> None:
             new_paths = format_valid_paths_into_list(paths)
             hubs_name = list(map.keys())
             valid_map = create_valid_graph(hubs_name, new_paths)
-            # print(valid_map)
             valid_map = sort_map_by_priority(valid_map, map)
-            # print(valid_map)
-            # rev_map = create_reverse_valid_graph(valid_map, map)
-            rev_map = create_reverse_valid_graph(hubs_name, new_paths, map)
-            print(rev_map)
-            # sim = SimpleSimulator(graph=map, valid_paths=paths,
-            #                       drones=drone_counts)
             sim = AdvanceSimulator(graph=map, valid_paths=paths,
                                    drones=drone_counts)
             drones = sim.get_drones()
