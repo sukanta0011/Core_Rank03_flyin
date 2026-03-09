@@ -154,7 +154,8 @@ class ImageOperations:
                 src_start = y * sl
                 src_end = src_start + (w * 4)
                 if dest.data is not None and src.data is not None:
-                    dest.data[dest_start:dest_end] = src.data[src_start:src_end]
+                    dest.data[dest_start:dest_end] = \
+                        src.data[src_start:src_end]
                 # else:
                 #     raise OperationError(
                 #         "Cropping failed, The dest or src image is empty"
@@ -202,7 +203,8 @@ class ImageOperations:
                 src_start = (start_y + y) * src.sl + (4 * start_x)
                 src_end = src_start + (4 * w)
                 if dest.data is not None and src.data is not None:
-                    dest.data[dest_start:dest_end] = src.data[src_start:src_end]
+                    dest.data[dest_start:dest_end] = \
+                        src.data[src_start:src_end]
                 # else:
                 #     raise OperationError(
                 #         "Cropping failed, The dest or src image is empty"
@@ -450,7 +452,7 @@ class TxtToImage:
         return x
 
 
-def tester():
+def tester() -> None:
     from src.visualizer.mlx_tools.letter_to_img_map import LetterToImageMapper
     from src.visualizer.mlx_tools.base_mlx import MyMLX
     try:

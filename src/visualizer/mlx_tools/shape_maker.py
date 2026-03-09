@@ -129,9 +129,10 @@ class ShapeGenerator:
             raise ImgError(f"Drawing filled rectangle failed.-> {e}")
 
     @staticmethod
-    def connect_two_square(mlx_var: MlxVar,
-            img: ImgData, cen1: Tuple,
-            cen2: Tuple, len: int, color=0xFFFFFFFF):
+    def connect_two_square(
+        mlx_var: MlxVar, img: ImgData, cen1: Tuple,
+            cen2: Tuple, len: int,
+            color: int = 0xFFFFFFFF) -> None:
         if cen1[0] > cen2[0]:
             x_max, x_min = cen1[0], cen2[0]
         else:
@@ -142,11 +143,13 @@ class ShapeGenerator:
             y_max, y_min = cen2[1], cen1[1]
 
         if x_max - x_min == 0:
-            ShapeGenerator.draw_line(mlx_var, img, (x_min, y_min + len // 2),
-                           y_max - y_min - len, "v", color)
+            ShapeGenerator.draw_line(
+                mlx_var, img, (x_min, y_min + len // 2),
+                y_max - y_min - len, "v", color)
         elif y_max - y_min == 0:
-            ShapeGenerator.draw_line(mlx_var, img, (x_min + len // 2, y_min),
-                           x_max - x_min - len, "h", color)
+            ShapeGenerator.draw_line(
+                mlx_var, img, (x_min + len // 2, y_min),
+                x_max - x_min - len, "h", color)
         else:
             slope = (cen2[1] - cen1[1]) / (cen2[0] - cen1[0])
             if slope > 0:
@@ -170,6 +173,8 @@ class ShapeGenerator:
                             curr_slope = (j - y_min) / (i - x_min)
                         if slope - 0.01 <= curr_slope <= slope + 0.01:
                             if abs(curr_slope) != 1:
-                                ShapeGenerator.draw_filled_rectangle(mlx_var, img, (i, j), 1, 1, color)
+                                ShapeGenerator.draw_filled_rectangle(
+                                    mlx_var, img, (i, j), 1, 1, color)
                             else:
-                                ShapeGenerator.draw_filled_rectangle(mlx_var, img, (i, j), 1, 1, color)
+                                ShapeGenerator.draw_filled_rectangle(
+                                    mlx_var, img, (i, j), 1, 1, color)

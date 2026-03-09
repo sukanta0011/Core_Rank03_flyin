@@ -1,22 +1,25 @@
 from __future__ import annotations
-from typing import Dict, List, Tuple, TYPE_CHECKING
+from typing import Dict, List, Tuple, Callable, TYPE_CHECKING
 import math
 from src.simulator.simulation_engine import Drone
 from src.parser.map_constructor import Zone
-from .mlx_tools.base_mlx import MlxVar, MyMLX
+from src.simulator.helpers import get_pos_obj
+from .mlx_tools.base_mlx import MlxVar
 from .mlx_tools.image_operations import ImageOperations
 if TYPE_CHECKING:
     from src.visualizer.map_visualizer import ConstantParameters
-    from src.visualizer.map_visualizer import GraphVisualizer
 
 
 def drone_animation_translation(
         params: Tuple[MlxVar, ConstantParameters,
-                      List[Drone], Dict[str, Zone], object, object,
-                      object, object, object]):
+                      List[Drone], Dict[str, Zone],
+                      Callable, Callable, Callable,
+                      Callable, Callable,
+                      Callable, Callable]) -> None:
     mlx_var, const, drones, zones, \
         func_move, func_txt, \
-        func_throughput, func_cost, ani_counter = params
+        func_throughput, func_cost, \
+        ani_counter, update, auto_animate = params
     mlx_var.mlx.mlx_clear_window(mlx_var.mlx_ptr, mlx_var.win_ptr)
     if mlx_var.static_bg.data is not None and \
        mlx_var.buff_img.data is not None:
@@ -55,12 +58,13 @@ def drone_animation_translation(
             mlx_var.buff_img, mlx_var.drone_img,
             (xc_scaled - mlx_var.drone_img.w // 2,
              yc_scaled - mlx_var.drone_img.h // 2))
-        func_txt(mlx_var, mlx_var.buff_img, (xc_scaled - mlx_var.drone_img.w // 2,
-                 yc_scaled - mlx_var.drone_img.h), drone.name, " ", 0.3)
+        func_txt(mlx_var, mlx_var.buff_img,
+                 (xc_scaled - mlx_var.drone_img.w // 2,
+                  yc_scaled - mlx_var.drone_img.h), drone.name, " ", 0.3)
     func_move(mlx_var, mlx_var.buff_img, (10, 180), "", "_",
               0.4, 0xFF000000, 0xff2ebdca)
     func_throughput(mlx_var, mlx_var.buff_img, (520, 100), "", "_",
-              0.35, 0xFF00FFFF)
+                    0.35, 0xFF00FFFF)
     func_cost(mlx_var, mlx_var.buff_img, (520, 200), "", "_",
               0.35, 0xFF00FFFF)
 
@@ -71,14 +75,18 @@ def drone_animation_translation(
         xi = coord[0] * const.mul + const.x_offset
         yi = coord[1] * const.mul + const.y_cent
         func_txt(mlx_var, mlx_var.buff_img,
-                 (xi - 40, yi - 45), f"{zone.capacity}:{zone.occupancy}", " ", 0.4)
+                 (xi - const.sq_len, yi - const.sq_len),
+                 f"{zone.capacity}:{zone.occupancy}", " ", 0.4)
     # print([drone.name for drone in drones])
     # copy_img_to_buffer(mlx_var.buff_img, mlx_var.static_bg, (0, 0))
-    # print(f"Animation updated: {[(drone.name, drone.target_pos)for drone in drones]}")
+    # print(f"Animation updated: "
+    #       f"{[(drone.name, drone.target_pos) for drone in drones]}")
     mlx_var.mlx.mlx_put_image_to_window(mlx_var.mlx_ptr, mlx_var.win_ptr,
                                         mlx_var.buff_img.img, 0, 0)
-    if all_drone_moved:
-        drone.moving
+    if all_drone_moved and auto_animate():
+        end = get_pos_obj(zones, "end")
+        if end is not None and (end.occupancy < len(drones)):
+            update()
 
 
 # def drone_animation_hovering(params: Tuple[MlxVar, str]):

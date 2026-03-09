@@ -26,8 +26,8 @@ class PathFinder(ABC):
 
 
 class DepthFirstSearch(PathFinder):
-    def find_valid_paths(self):
-        valid_paths = []
+    def find_valid_paths(self) -> List:
+        valid_paths: List = []
         path = ""
         cost = -1
         link_cap = 1
@@ -39,7 +39,7 @@ class DepthFirstSearch(PathFinder):
 
     def _use_recursion(self, curr_pos: Zone, path: str,
                        cost: (int | float), valid_paths: List,
-                       link_cap: int, last_pos: Zone):
+                       link_cap: int, last_pos: Zone) -> None:
         if not self.can_move_forward(curr_pos, path):
             path += f"{curr_pos.name}, "
             if last_pos.capacity >= link_cap and curr_pos.capacity >= link_cap:

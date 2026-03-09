@@ -1,6 +1,5 @@
 from typing import Tuple, Dict, List
 import sys
-from mlx import Mlx
 from src.parser.map_constructor import Zone
 from src.simulator.simulation_engine import Simulator, Drone
 from .mlx_tools.base_mlx import MyMLX, MlxVar
@@ -39,6 +38,7 @@ class GraphVisualizer(MyMLX):
         self.ani_counter = 0
         self.move_txt = "Move: 0"
         self.throughput: List[Tuple[int, int]] = []
+        self.auto_animate = False
         self.init_letter_map()
         self.start_animation()
 
@@ -63,19 +63,27 @@ class GraphVisualizer(MyMLX):
             print("Following Error encounter during creation of"
                   f"letter map: {e}", file=sys.stderr)
 
-    def mykey(self, key_num: int, mlx_var: MlxVar):
+    def mykey(self, key_num: int, mlx_var: MlxVar) -> None:
         # super().mykey(keynum, mlx_var)
         if key_num in KeyMap.MOVE:
-            self.update_map(self.simulator)
+            self.update_map()
+        if key_num in KeyMap.AUTO:
+            self.auto_animate = True
+        if key_num in KeyMap.STOP:
+            self.auto_animate = False
         if key_num in KeyMap.QUIT:
             self.stop_mlx(self.mlx)
 
-    def start_animation(self):
+    def start_animation(self) -> None:
         self.mlx.mlx.mlx_loop_hook(
             self.mlx.mlx_ptr, drone_animation_translation,
             (self.mlx, self.const, self.drones, self.graph,
              self.print_move, self.print_txt, self.print_throughput,
-             self.print_cost, self.animation_counter))
+             self.print_cost, self.animation_counter, self.update_map,
+             self.get_auto_animate_status))
+
+    def get_auto_animate_status(self) -> bool:
+        return self.auto_animate
 
     def animation_counter(self) -> int:
         if self.ani_counter < 360:
@@ -86,16 +94,16 @@ class GraphVisualizer(MyMLX):
 
     def print_txt(self, mlx_var: MlxVar, img: ImgData,
                   center: Tuple, name: str, split_by: str,
-                  factor: float, font_clr=0xffffffff,
-                  bg_clr=0x00000000) -> None:
+                  factor: float, font_clr: int = 0xffffffff,
+                  bg_clr: int = 0x00000000) -> None:
         self.txt_to_image.print_txt(
             self.mlx, img, name, center, factor,
             font_clr, bg_clr)
 
     def print_move(self, mlx_var: MlxVar, img: ImgData,
                    center: Tuple, name: str, split_by: str,
-                   factor: float, font_clr=0xffffffff,
-                   bg_clr=0x00000000) -> None:
+                   factor: float, font_clr: int = 0xffffffff,
+                   bg_clr: int = 0x00000000) -> None:
         x, y = center
         split_names = self.move_txt.split('\n')
         for name in split_names:
@@ -105,8 +113,8 @@ class GraphVisualizer(MyMLX):
 
     def print_throughput(self, mlx_var: MlxVar, img: ImgData,
                          center: Tuple, name: str, split_by: str,
-                         factor: float, font_clr=0xffffffff,
-                         bg_clr=0x00000000):
+                         factor: float, font_clr: int = 0xffffffff,
+                         bg_clr: int = 0x00000000) -> None:
         x, y = center
         initial_y = y
         for info in self.throughput:
@@ -123,7 +131,8 @@ class GraphVisualizer(MyMLX):
 
     def print_cost(self, mlx_var: MlxVar, img: ImgData,
                    center: Tuple, name: str, split_by: str,
-                   factor: float, font_clr=0xffffffff, bg_clr=0x00000000):
+                   factor: float, font_clr: int = 0xffffffff,
+                   bg_clr: int = 0x00000000) -> None:
         x, y = center
         initial_y = y
         for drone in self.drones:
@@ -142,7 +151,8 @@ class GraphVisualizer(MyMLX):
         self.mlx.drone_img = img
 
     def print_link_capacity(self, cord1: Tuple[int, int],
-                            cord2: Tuple[int, int], capacity: int):
+                            cord2: Tuple[int, int],
+                            capacity: int) -> None:
         xi, xf = cord1
         yi, yf = cord2
         extra_gap = 4
@@ -160,7 +170,7 @@ class GraphVisualizer(MyMLX):
             self.mlx, self.mlx.static_bg,
             str(capacity), (x_txt, y_txt), 0.5)
 
-    def generate_header(self):
+    def generate_header(self) -> None:
         self.set_background(self.mlx.static_bg, (0, 0),
                             self.const.win_w,
                             self.const.y_offset, self.const.header_bg)
@@ -176,14 +186,14 @@ class GraphVisualizer(MyMLX):
         ShapeGenerator.draw_line(self.mlx, self.mlx.static_bg, (30, 70), 30,
                                  "h", Color.PRIORITY, 3)
         self.txt_to_image.print_txt(
-            self.mlx, self.mlx.static_bg, "priority",
+            self.mlx, self.mlx.static_bg, "Priority",
             (70, 60), factor=0.5, font_color=Color.BLACK,
             bg_color=self.const.header_bg)
 
         ShapeGenerator.draw_line(self.mlx, self.mlx.static_bg, (30, 100), 30,
                                  "h", Color.RESTRICTED, 3)
         self.txt_to_image.print_txt(
-            self.mlx, self.mlx.static_bg, "restricted",
+            self.mlx, self.mlx.static_bg, "Restricted",
             (70, 90), factor=0.5, font_color=Color.BLACK,
             bg_color=self.const.header_bg)
 
@@ -204,7 +214,15 @@ class GraphVisualizer(MyMLX):
         # Key info:
         self.txt_to_image.print_txt(
             self.mlx, self.mlx.static_bg, "1: Move",
-            (250, 100), factor=0.5, font_color=Color.BLACK,
+            (250, 60), factor=0.5, font_color=Color.BLACK,
+            bg_color=self.const.header_bg)
+        self.txt_to_image.print_txt(
+            self.mlx, self.mlx.static_bg, "2: Auto",
+            (250, 90), factor=0.5, font_color=Color.BLACK,
+            bg_color=self.const.header_bg)
+        self.txt_to_image.print_txt(
+            self.mlx, self.mlx.static_bg, "3: Stop",
+            (250, 120), factor=0.5, font_color=Color.BLACK,
             bg_color=self.const.header_bg)
         self.txt_to_image.print_txt(
             self.mlx, self.mlx.static_bg, "4: Quit",
@@ -221,7 +239,7 @@ class GraphVisualizer(MyMLX):
             (400, 175), factor=0.4, font_color=Color.BLACK,
             bg_color=self.const.header_bg)
 
-    def generate_map(self, valid_paths: Dict[str, List]):
+    def generate_map(self, valid_paths: Dict[str, List]) -> None:
         for key, zone in self.graph.items():
             coord = zone.coordinates
             color = 0xFFFFFFFF
@@ -236,9 +254,14 @@ class GraphVisualizer(MyMLX):
             ShapeGenerator.draw_hollow_square(self.mlx, self.mlx.static_bg,
                                               (xi, yi),
                                               self.const.sq_len, color)
-            self.print_txt(self.mlx, self.mlx.static_bg,
-                           (xi, yi + int(self.const.sq_len * 2 / 3)),
-                           zone.name, "_", 0.3)
+            zone_name = zone.name.split("_")
+            y_zone_name = yi + int(self.const.sq_len * 2 / 3)
+            for name in zone_name:
+                self.print_txt(
+                    self.mlx, self.mlx.static_bg,
+                    (xi, y_zone_name),
+                    name, "_", 0.4)
+                y_zone_name += 20
             valid_links = valid_paths[key]
             # print(zone.name, xi, yi, self.h // 2)
             for link in zone.links:
@@ -268,22 +291,25 @@ class GraphVisualizer(MyMLX):
         ImageOperations.copy_img(self.mlx.buff_img, self.mlx.static_bg, (0, 0))
         self.put_buffer_image()
 
-    def update_map(self, simulator: Simulator):
+    def update_map(self) -> bool:
         # self.mlx.mlx.mlx_clear_window(self.mlx.mlx_ptr, self.mlx.win_ptr)\
         drones_moving = [drone.moving for drone in self.drones]
         if True not in drones_moving:
-            drone_movement = simulator.next_move(self.valid_paths)
+            drone_movement = self.simulator.next_move(self.valid_paths)
             if len(drone_movement) == 0:
                 print("All drones reached to the goal")
                 self.move_txt = f"Move: {self.counter} "\
                                 "Simulation completed!"
             else:
+                print(drone_movement)
                 drone_moved = drone_movement.split(" ")
                 self.counter += 1
                 self.move_txt = f"Move: {self.counter}"
                 self.throughput.append((self.counter, len(drone_moved) - 1))
+            return True
         else:
             print("Drones are moving, please wait.")
+            return False
 
 
 # def mlx_test():

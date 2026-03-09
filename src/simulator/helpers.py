@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Dict, List, Tuple, TYPE_CHECKING
 from src.parser.map_constructor import Zone
 if TYPE_CHECKING:
-    from srcs.visualizer.map_visualizer import ConstantParameters
+    from src.visualizer.map_visualizer import ConstantParameters
 
 
 def get_pos_obj(graph: Dict[str, Zone],
@@ -13,11 +13,11 @@ def get_pos_obj(graph: Dict[str, Zone],
     return None
 
 
-def format_valid_paths_into_list(paths: List[str]) -> List[List]:
+def format_valid_paths_into_list(paths: List[str]) -> List[List[str]]:
     new_paths = []
     for path in paths:
         path_list = path.split(", ")
-        path_list[-1] = float(path_list[-1])
+        # path_list[-1] = float(path_list[-1])
         new_paths.append(path_list)
     return new_paths
 
@@ -25,7 +25,7 @@ def format_valid_paths_into_list(paths: List[str]) -> List[List]:
 def create_valid_graph(hubs_name: List[str],
                        paths: List[List]) -> Dict[str, List[str]]:
     priority_paths: Dict[str, List[str]] = {}
-    sorted_paths = sorted(paths, key=lambda path: path[-1])
+    sorted_paths = sorted(paths, key=lambda path: float(path[-1]))
     # print(sorted_paths)
     for hub in hubs_name:
         priority_paths[hub] = []
@@ -39,6 +39,43 @@ def create_valid_graph(hubs_name: List[str],
                 pass
     # print(priority_paths)
     return priority_paths
+
+
+def create_reverse_valid_graph(hubs_name: List[str],
+                               paths: List[List],
+                               map: Dict[str, Zone]) -> Dict[str, List[str]]:
+    priority_paths: Dict[str, List[str]] = {}
+    sorted_paths = sorted(paths, key=lambda path: float(path[-1]))
+    print(sorted_paths)
+    for hub in reversed(hubs_name):
+        priority_paths[hub] = []
+
+    for hub in reversed(hubs_name):
+        priority_paths[hub] = []
+        for path in sorted_paths:
+            try:
+                hub_idx = path.index(hub)
+                if hub_idx > 0 and path[hub_idx - 1]:
+                    priority_paths[hub].append(path[hub_idx - 1])
+            except ValueError:
+                pass
+    # print(priority_paths)
+    return priority_paths
+
+# def create_reverse_valid_graph(
+#         valid_map: Dict[str, List[str]],
+#         map: Dict[str, Zone]) -> Dict[str, List[str]]:
+#     rev_map: Dict[str, List[str]] = {}
+#     print(valid_map)
+#     for key, val in reversed(valid_map.items()):
+#         rev_map[key] = []
+
+#     for key, val in reversed(valid_map.items()):
+#         for item in val:
+#             if item in rev_map.keys():
+#                 rev_map[item].append(key)
+#     # print(rev_map)
+#     return rev_map
 
 
 def sort_map_by_priority(valid_map: Dict[str, List[str]],
@@ -71,11 +108,12 @@ def calculate_window_size(
     if x_max > const.win_w:
         const.win_w = x_max + const.sq_len * 2
     # y_min = boundary[2] * const.mul + const.y_offset
-    y_max = (boundary[3] - boundary[2]) * const.mul + const.y_offset + const.sq_len * 3
+    y_max = (boundary[3] - boundary[2]) * const.mul +\
+        const.y_offset + const.sq_len * 3
     # print(boundary, x_max, y_max)
     if y_max > const.win_h:
         const.win_h = y_max + const.sq_len * 3
     const.y_cent = const.y_offset + \
         int((const.win_h - const.y_offset) * ((abs(boundary[2]) + 2) /
-                                              (abs(boundary[3]) + abs(boundary[2]) + 3)))
+            (abs(boundary[3]) + abs(boundary[2]) + 3.5)))
     return (const.win_w, const.win_h)
