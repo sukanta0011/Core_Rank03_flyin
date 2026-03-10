@@ -18,7 +18,8 @@ from src.simulator.helpers import (
 
 def main() -> None:
     # Modify the file path for loading different maps
-    file_path = "maps/easy/03_basic_capacity.txt"
+    # file_path = "maps/easy/03_basic_capacity.txt"
+    file_path = "maps/hard/03_ultimate_challenge.txt"
     map_parser = MapParser()
     map_parser.parse(file_path)
     # map_parser.show_map()

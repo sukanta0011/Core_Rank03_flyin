@@ -16,11 +16,36 @@ from src.parser.parsing_errors import (
 
 
 class MapParser:
+    """
+    A robust configuration parser for the FLYIN simulation.
+
+    Responsible for reading .txt map files, validating syntax, enforcing
+    topological constraints, and instantiating the graph objects
+    (Zones and Links).
+
+    Attributes:
+        map_dict (Dict): Core storage for 'drones' (int) and 'hubs'
+        (Dict[str, Zone]).
+        zone_connection (List[Tuple]): Tracks established links to prevent
+        duplicates.
+    """
     def __init__(self) -> None:
         self.map_dict: Dict = {}
         self.zone_connection: List[Tuple[str, str]] = []
 
     def parse(self, path: str) -> None:
+        """
+        Main entry point for map ingestion.
+
+        Performs line-by-line parsing and triggers specific extractors.
+        Enforces the 'nb_drones first' rule and final graph integrity checks.
+
+        Args:
+            path (str): Filesystem path to the map file.
+        Raises:
+            MapError: If start/end hubs are missing or data is incomplete.
+            FormattingError: If the file syntax is invalid.
+        """
         error_encountered = True
         drone = 0
         hubs = 0
@@ -70,12 +95,16 @@ class MapParser:
             self.reset_map()
 
     def get_drone_num(self) -> int | None:
+        """Return the drone id/number"""
         return self.map_dict.get("drones")
 
     def get_map(self) -> Dict[str, Zone] | None:
+        """Return the dictionary of stored map info"""
         return self.map_dict.get("hubs")
 
     def show_map(self) -> None:
+        """Generates a formatted ASCII table of the loaded graph for
+        debugging."""
         try:
             hubs = self.map_dict.get("hubs")
             if hubs is not None:
@@ -90,9 +119,16 @@ class MapParser:
             print(f"TableGenerationError: {e}")
 
     def reset_map(self) -> None:
+        """Rest the map info"""
         self.map_dict = {}
 
     def has_proper_start_end(self, hubs: Dict) -> bool:
+        """
+        Final validation check for graph solvability.
+
+        Ensures the map contains at least one start and one end hub, that
+        they aren't at the same coordinates, and that they aren't 'blocked'.
+        """
         start = False
         end = False
         start_x, start_y = 0, 0
@@ -126,6 +162,16 @@ class MapParser:
                 "MapError: Map do not have both start and end hub info")
 
     def _extract_drone_counts(self, line_no: int, line: str) -> None:
+        """
+        Parses the 'nb_drones' directive to set the total agent count.
+
+        This must be the first data line in the file. It validates
+        that the count is a positive integer.
+
+        Args:
+            line_no: Current line index for error reporting.
+            line: The raw string containing the drone count.
+        """
         split_line = line.split("\n")[0].split(":")
         if len(split_line) == 2:
             try:
@@ -144,6 +190,8 @@ class MapParser:
                                   "is in wrong format")
 
     def _extract_hub_info(self, line_no: int, line: str) -> None:
+        """Parses hub definitions and dispatches metadata for Zone
+        instantiation."""
         if "drones" not in self.map_dict.keys():
             raise FormattingError(
                 "'nb_drone' should be the first element in the map")
@@ -171,6 +219,18 @@ class MapParser:
 
     def _store_hub_info(self, line_no: int, hub_info: List,
                         hub_type: str, storage: Dict) -> None:
+        """
+        Instantiates specific Zone objects (Start, End, or Middle) and stores
+        them in the hub registry.
+
+        Validates coordinate types and checks for naming conflicts.
+
+        Args:
+            line_no: Current line index.
+            hub_info: List containing [name, x, y].
+            hub_type: String identifier for hub classification.
+            storage: The dictionary where Zone instances are registered.
+        """
         if len(hub_info) == 3:
             if "-" in hub_info[0] or " " in hub_info[0]:
                 raise HubError(f"HubError: ({line_no}) '-' in hub name is "
@@ -216,6 +276,12 @@ class MapParser:
     def _store_hub_metadata(
             self, line_no: int, metadata: List | None,
             hub_name: str, hub_type: str, storage: Dict) -> None:
+        """
+        Parses optional bracketed metadata (zone type, color, max_drones).
+
+        Applies configuration updates to the existing Zone instance. Enforces
+        strict formatting and prevents duplicate metadata definitions.
+        """
         # zone = "normal"
         # color = None
         # max_drones = 1
@@ -246,7 +312,7 @@ class MapParser:
                     # Extract metadata
                     if key_val[0] == "zone":
                         try:
-                            storage[hub_name].update_zone(key_val[1])
+                            storage[hub_name].update_zone_type(key_val[1])
                         except Exception:
                             raise MetadataError(
                                 f"({line_no}) Unknown zone type '{key_val[1]}'"
@@ -292,6 +358,7 @@ class MapParser:
 
     def _link_the_connections(self, line_no: int,
                               line: str, storage: Dict) -> None:
+        """Validates and creates Link objects between existing Zones."""
         split_line = line.split(":")
         if len(split_line) == 2:
             link_full_data = split_line[1].strip().split("[")
@@ -339,6 +406,14 @@ class MapParser:
                 f"LinkingError: ({line_no}) has improper formatting")
 
     def _extract_max_link_capacity(self, line_no: int, metadata: str) -> int:
+        """
+        Parses optional link metadata to determine edge bandwidth.
+
+        Args:
+            metadata: The string within brackets (e.g., 'max_link_capacity=2').
+        Returns:
+            The parsed integer capacity, defaulting to 1 if not specified.
+        """
         link_capacity = metadata[: -1].split("=")
         if len(link_capacity) == 2:
             if link_capacity[0] != "max_link_capacity":

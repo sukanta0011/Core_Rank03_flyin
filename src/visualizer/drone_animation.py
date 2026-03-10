@@ -16,6 +16,23 @@ def drone_animation_translation(
                       Callable, Callable, Callable,
                       Callable, Callable,
                       Callable, Callable]) -> None:
+    """
+    The primary rendering loop hook for agent movement and telemetry.
+
+    This function performs several critical tasks every frame:
+    1. Buffer Management: Clears the window and restores the static background
+       to the dynamic buffer using memory slicing.
+    2. Linear Interpolation (LERP): Calculates the next incremental position
+       of drones moving between hubs using slope-based translation.
+    3. Procedural Animation: Applies a sine-wave offset to drones based on
+       an animation counter to simulate a 'hovering' effect.
+    4. Scaling: Translates raw simulation coordinates into scaled window
+       coordinates based on the map's aspect ratio.
+    5. Telemetry Projection: Renders real-time hub occupancy, movement logs,
+       and throughput stats onto the frame buffer.
+    6. State Commitment: Blits the final buffer to the MLX window and triggers
+       the next simulation logic step if 'Auto' mode is active.
+    """
     mlx_var, const, drones, zones, \
         func_move, func_txt, \
         func_throughput, func_cost, \

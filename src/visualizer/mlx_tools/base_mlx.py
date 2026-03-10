@@ -212,6 +212,9 @@ class MyMLX:
         return 0xFF000000 | r << 16 | g << 8 | b
 
     def color_name_to_code(self, color_name: str) -> Any:
+        """
+        Return the hex string by converting colour name to hex string
+        """
         try:
             color_code = name_to_hex(color_name)
             if "#000000" not in color_code:

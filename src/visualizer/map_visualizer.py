@@ -12,6 +12,17 @@ from .drone_animation import drone_animation_translation
 
 
 class ConstantParameters:
+    """
+    Holds the global scaling and aesthetic parameters for the MLX window.
+
+    Attributes:
+        sq_len (int): The side length of the square representing a Hub.
+        mul (int): The scaling factor to convert graph coordinates to
+        screen pixels.
+        fractional_move (float): The speed of LERP interpolation
+        (0.01 = 1% per frame).
+        header_bg (int): Hex color for the top telemetry dashboard.
+    """
     def __init__(self) -> None:
         self.sq_len = 40
         self.mul = 120
@@ -25,6 +36,19 @@ class ConstantParameters:
 
 
 class GraphVisualizer(MyMLX):
+    """
+    The primary controller for the graphical drone simulation.
+
+    Inherits from MyMLX to provide a high-level interface for rendering
+    the graph, agents, and real-time statistics.
+
+    Attributes:
+        graph (Dict): The logical hub network.
+        simulator (Simulator): The engine providing the next_move logic.
+        throughput (List): History of drone arrivals used to draw the
+        bar chart.
+        auto_animate (bool): Toggle for continuous vs. step-by-step mode.
+    """
     def __init__(self, name: str, graph: Dict[str, Zone], w: int, h: int,
                  valid_paths: Dict[str, List], simulator: Simulator,
                  drones: List[Drone], const: ConstantParameters):
@@ -43,11 +67,11 @@ class GraphVisualizer(MyMLX):
         self.start_animation()
 
     def init_letter_map(self) -> None:
-        """Initializes the font system and configures the text processing
-          pipeline.
+        """
+        Initializes the custom font engine.
 
-        Loads the alphabet sprite sheet and adds scaling and coloring stages
-        to the text rendering engine.
+        Loads letter sprites and configures the text-to-image pipeline
+        with scaling and dynamic color-changing stages.
         """
         self.txt_to_image: TxtToImage
         try:
@@ -64,6 +88,15 @@ class GraphVisualizer(MyMLX):
                   f"letter map: {e}", file=sys.stderr)
 
     def mykey(self, key_num: int, mlx_var: MlxVar) -> None:
+        """
+        Keyboard event handler for user interaction.
+
+        Maps KeyMap constants to simulation triggers:
+        - MOVE: Executes a single discrete simulation tick.
+        - AUTO: Activates continuous autonomous simulation.
+        - STOP: Suspends autonomous simulation.
+        - QUIT: Safely closes the window and terminates the program.
+        """
         # super().mykey(keynum, mlx_var)
         if key_num in KeyMap.MOVE:
             self.update_map()
@@ -75,6 +108,13 @@ class GraphVisualizer(MyMLX):
             self.stop_mlx(self.mlx)
 
     def start_animation(self) -> None:
+        """
+        Registers the main rendering and animation function with the MLX
+        loop hook.
+
+        Passes a comprehensive state tuple to 'drone_animation_translation'
+        to facilitate frame-by-frame updates.
+        """
         self.mlx.mlx.mlx_loop_hook(
             self.mlx.mlx_ptr, drone_animation_translation,
             (self.mlx, self.const, self.drones, self.graph,
@@ -83,9 +123,15 @@ class GraphVisualizer(MyMLX):
              self.get_auto_animate_status))
 
     def get_auto_animate_status(self) -> bool:
+        """Returns the current boolean state of the auto-animation toggle."""
         return self.auto_animate
 
     def animation_counter(self) -> int:
+        """
+        Circular frame counter (0-360) used for trigonometric animations.
+
+        Increments by 5 per frame to drive sine-wave based 'hovering' effects.
+        """
         if self.ani_counter < 360:
             self.ani_counter += 5
         else:
@@ -96,6 +142,8 @@ class GraphVisualizer(MyMLX):
                   center: Tuple, name: str, split_by: str,
                   factor: float, font_clr: int = 0xffffffff,
                   bg_clr: int = 0x00000000) -> None:
+        """General purpose text renderer for blitting strings to
+        an image buffer."""
         self.txt_to_image.print_txt(
             self.mlx, img, name, center, factor,
             font_clr, bg_clr)
@@ -104,6 +152,8 @@ class GraphVisualizer(MyMLX):
                    center: Tuple, name: str, split_by: str,
                    factor: float, font_clr: int = 0xffffffff,
                    bg_clr: int = 0x00000000) -> None:
+        """Renders the formatted 'Move Count' telemetry to
+        the dashboard header."""
         x, y = center
         split_names = self.move_txt.split('\n')
         for name in split_names:
@@ -115,6 +165,11 @@ class GraphVisualizer(MyMLX):
                          center: Tuple, name: str, split_by: str,
                          factor: float, font_clr: int = 0xffffffff,
                          bg_clr: int = 0x00000000) -> None:
+        """
+        Generates and renders a live vertical bar chart of drone throughput.
+
+        Visualizes how many drones arrive at the goal hub per simulation tick.
+        """
         x, y = center
         initial_y = y
         for info in self.throughput:
@@ -133,6 +188,12 @@ class GraphVisualizer(MyMLX):
                    center: Tuple, name: str, split_by: str,
                    factor: float, font_clr: int = 0xffffffff,
                    bg_clr: int = 0x00000000) -> None:
+        """
+        Generates a visual cost histogram.
+
+        Renders vertical bars representing the total moves accumulated
+        by each individual drone in the swarm.
+        """
         x, y = center
         initial_y = y
         for drone in self.drones:
@@ -148,11 +209,16 @@ class GraphVisualizer(MyMLX):
             x += 21
 
     def set_drone_image(self, img: ImgData) -> None:
+        """Sets the active sprite used for drone rendering."""
         self.mlx.drone_img = img
 
     def print_link_capacity(self, cord1: Tuple[int, int],
                             cord2: Tuple[int, int],
                             capacity: int) -> None:
+        """
+        Calculates the midpoint of a link and renders its maximum
+        capacity label for static background generation.
+        """
         xi, xf = cord1
         yi, yf = cord2
         extra_gap = 4
@@ -171,6 +237,12 @@ class GraphVisualizer(MyMLX):
             str(capacity), (x_txt, y_txt), 0.5)
 
     def generate_header(self) -> None:
+        """
+        Bakes the static UI elements into the background.
+
+        Includes the legend (Priority, Restricted, etc.), key-binding
+        instructions, and telemetry labels.
+        """
         self.set_background(self.mlx.static_bg, (0, 0),
                             self.const.win_w,
                             self.const.y_offset, self.const.header_bg)
@@ -240,6 +312,12 @@ class GraphVisualizer(MyMLX):
             bg_color=self.const.header_bg)
 
     def generate_map(self, valid_paths: Dict[str, List]) -> None:
+        """
+        Iterates through the graph to draw all hubs and directed links.
+
+        Applies color coding based on zone type and path priority to the
+        static background buffer.
+        """
         for key, zone in self.graph.items():
             coord = zone.coordinates
             color = 0xFFFFFFFF
@@ -292,6 +370,12 @@ class GraphVisualizer(MyMLX):
         self.put_buffer_image()
 
     def update_map(self) -> bool:
+        """
+        Orchestrates logical turn transitions.
+
+        Requests a new 'next_move' from the simulator only when all current
+        drone animations are complete, ensuring visual-logical synchronization.
+        """
         # self.mlx.mlx.mlx_clear_window(self.mlx.mlx_ptr, self.mlx.win_ptr)\
         drones_moving = [drone.moving for drone in self.drones]
         if True not in drones_moving:

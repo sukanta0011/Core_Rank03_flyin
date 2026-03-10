@@ -133,6 +133,16 @@ class ShapeGenerator:
         mlx_var: MlxVar, img: ImgData, cen1: Tuple,
             cen2: Tuple, len: int,
             color: int = 0xFFFFFFFF) -> None:
+        """A Static method which draw lines between teo coordinates
+
+        Args:
+            mlx_var (MlxVar): MLX Variable.
+            img (ImgData): Image file on which it need to draw.
+            cen1 (Tuple): Coordinate of first point.
+            cen2 (Tuple): Coordinate of second point.
+            len (int): len of the square drawn on those centers
+            color (int, optional): Colour of the line. Defaults to 0xFFFFFFFF.
+        """
         if cen1[0] > cen2[0]:
             x_max, x_min = cen1[0], cen2[0]
         else:
