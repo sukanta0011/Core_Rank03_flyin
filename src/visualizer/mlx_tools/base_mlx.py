@@ -147,7 +147,8 @@ class MyMLX:
             y (int): The y-coordinate of the mouse click.
             mystuff (Any): User-defined data passed to the hook.
         """
-        print(f"Got mouse event! button {button} at {x},{y}.")
+        pass
+        # print(f"Got mouse event! button {button} at {x},{y}.")
 
     def mykey(self, key_num: int, mlx_var: MlxVar) -> None:
         """Callback for keyboard press events.

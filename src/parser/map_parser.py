@@ -70,27 +70,30 @@ class MapParser:
                             self._link_the_connections(i + 1, line, storage)
                         else:
                             raise MapError(
-                                "MapError: Map to store the hubs info "
-                                "before checking the connections")
+                                -1,
+                                "Hub info should be store"
+                                "before checking the connections.")
                     else:
                         raise FormattingError(
-                            f"MapError: ({i + 1}) unknown line starting")
+                            -1,
+                            f"({i + 1}) unknown line starting")
             if drone == 1 and hubs > 1 and connections > 0:
                 if self.has_proper_start_end(self.map_dict['hubs']):
                     error_encountered = False
             else:
                 raise MapError(
-                    f"MapError: Map '{path}' do not have complete information")
+                    -1,
+                    f"Map '{path}' do not have complete information.")
 
         except FileNotFoundError:
-            print(f"ParsingError: invalid path '{path}'")
+            print(f"Invalid path '{path}'")
         except PermissionError:
-            print(f"ParsingError: file '{path}' do not have "
+            print(f"File '{path}' do not have "
                   "reading permission")
         except MapError as e:
-            print(f"ParsingError->{e}")
+            print(f"{e}")
         except Exception as e:
-            print(f"GeneralError: {e}")
+            print(f"{e}")
         if error_encountered:
             self.reset_map()
 
@@ -149,17 +152,17 @@ class MapParser:
             if ((start_x - end_x)**2 + (start_y - end_y)**2) > 0:
                 if start_zone_type.value == "blocked":
                     raise MetadataError(
-                        "Start zone type can not be blocked")
+                        -1, "Start zone type can not be blocked.")
                 if end_zone_type.value == "blocked":
                     raise MetadataError(
-                        "End zone type can not be blocked")
+                        -1, "End zone type can not be blocked.")
                 return True
             else:
                 raise MapError(
-                    "MapError: start and end has same coordinates")
+                    -1, "Start and end has same coordinates.")
         else:
             raise MapError(
-                "MapError: Map do not have both start and end hub info")
+                -1, "Map do not have both start and end hub info.")
 
     def _extract_drone_counts(self, line_no: int, line: str) -> None:
         """
@@ -177,23 +180,24 @@ class MapParser:
             try:
                 drones_num = int(split_line[1])
             except ValueError:
-                raise DroneNumError(f"DroneError: line no ({line_no}) "
-                                    "Drone number has to be integer")
+                raise DroneNumError(
+                    line_no, "Drone number has to be integer.")
             if drones_num > 0:
                 self.map_dict["drones"] = drones_num
             else:
-                raise DroneNumError(f"DroneError: line no ({line_no}) "
-                                    "Drone number has to be positive "
-                                    "integer")
+                raise DroneNumError(
+                    line_no, "Drone number has to be positive "
+                    "integer.")
         else:
-            raise FormattingError(f"DroneError: line no ({line_no}) "
-                                  "is in wrong format")
+            raise FormattingError(
+                line_no, "Drone count is in wrong format.")
 
     def _extract_hub_info(self, line_no: int, line: str) -> None:
         """Parses hub definitions and dispatches metadata for Zone
         instantiation."""
         if "drones" not in self.map_dict.keys():
             raise FormattingError(
+                line_no,
                 "'nb_drone' should be the first element in the map")
         split_line = line.split("\n")[0].split(":")
         if len(split_line) == 2:
@@ -212,10 +216,10 @@ class MapParser:
                                          hub_info_list[0], split_line[0],
                                          self.map_dict["hubs"])
             except HubError as e:
-                raise HubError(f"HubError->{e}")
+                raise HubError(line_no, f"{e}")
         else:
-            raise FormattingError(f"HubError: ({line_no}) "
-                                  "is in wrong format")
+            raise FormattingError(
+                line_no, "Hub info is in wrong format.")
 
     def _store_hub_info(self, line_no: int, hub_info: List,
                         hub_type: str, storage: Dict) -> None:
@@ -233,23 +237,23 @@ class MapParser:
         """
         if len(hub_info) == 3:
             if "-" in hub_info[0] or " " in hub_info[0]:
-                raise HubError(f"HubError: ({line_no}) '-' in hub name is "
+                raise HubError(line_no, "'-' in hub name is "
                                "not allowed")
             if hub_info[0] in storage.keys():
-                raise HubError(f"DuplicateName: ({line_no}), "
+                raise HubError(line_no,
                                f"'{hub_info[0]}' already exists.")
             else:
                 try:
                     x = int(hub_info[1])
                     y = int(hub_info[2])
                 except ValueError:
-                    raise CoordinatesError(f"CoordinateError: ({line_no})"
-                                           " Hub coordinates need to be "
-                                           "integers")
+                    raise CoordinatesError(
+                        line_no, "Hub coordinates need to be "
+                        "integers.")
                 if x < 0:
-                    raise CoordinatesError(f"CoordinateError: ({line_no})"
-                                           " Hub x coordinates need to be "
-                                           "positive integer")
+                    raise CoordinatesError(line_no,
+                                           "Hub x coordinates need to be "
+                                           "positive integer.")
                 # check for duplicate coordinates
                 # for hub in storage:
                 #     # print(storage[hub].coordinates)
@@ -270,8 +274,8 @@ class MapParser:
                     storage[hub_info[0]] = Zone(
                         name=hub_info[0], x=x, y=y,)
         else:
-            raise FormattingError(f"HubError: ({line_no}) "
-                                  "do not have require hub infos")
+            raise FormattingError(line_no,
+                                  "Do not have require hub infos")
 
     def _store_hub_metadata(
             self, line_no: int, metadata: List | None,
@@ -293,19 +297,23 @@ class MapParser:
                     # Look for missing values
                     if len(key_val) == 1:
                         raise MetadataError(
-                            f"({line_no}), '{key_val[0]}' missing '='")
+                            line_no,
+                            f"'{key_val[0]}' missing '=' sign.")
                     elif len(key_val) == 2 and key_val[1].strip() == "":
                         raise MetadataError(
-                            f"({line_no}), '{key_val[0]}' missing value")
+                            line_no,
+                            f"'{key_val[0]}' is missing the value.")
                     elif len(key_val) > 2:
                         raise MetadataError(
-                            f"({line_no}), '{key_val[0]}' value is not "
-                            "in proper format")
+                            line_no,
+                            f"'{key_val[0]}' value is not "
+                            "in proper format.")
 
                     # Check the repetition of the zone metadata
                     if key_val[0] in keys:
                         raise MetadataError(
-                            f"({line_no}), {key_val[0]} has duplicate values")
+                            line_no,
+                            f"{key_val[0]} has duplicate values.")
                     else:
                         keys.append(key_val[0])
 
@@ -315,7 +323,8 @@ class MapParser:
                             storage[hub_name].update_zone_type(key_val[1])
                         except Exception:
                             raise MetadataError(
-                                f"({line_no}) Unknown zone type '{key_val[1]}'"
+                                line_no,
+                                f"Unknown zone type '{key_val[1]}'."
                                 )
                     elif key_val[0] == "color":
                         color = key_val[1]
@@ -324,32 +333,32 @@ class MapParser:
                         try:
                             drones = int(key_val[1])
                         except ValueError:
-                            raise MetadataError(f"({line_no}), '{key_val[0]}' "
-                                                "value has to be integer")
+                            raise MetadataError(line_no, f"'{key_val[0]}' "
+                                                "value has to be integer.")
                         if drones > 0:
                             if (
                                 ("start" in hub_type or "end" in hub_type) and
                                 (drones != self.map_dict["drones"])
                                ):
                                 raise DroneOccupancyError(
-                                    f"DroneOccupancyError: ({line_no}) "
-                                    f"Max_drone({drones}) in {hub_type} has "
-                                    f"to be equal to {self.map_dict['drones']}"
+                                    line_no,
+                                    f"Max_drone({drones}) in {hub_type} has to"
+                                    f" be equal to {self.map_dict['drones']}."
                                     )
                             storage[hub_name].update_capacity(drones)
                         else:
                             raise DroneOccupancyError(
-                                f"DroneOccupancyError: ({line_no}) "
-                                f"'{key_val[0]}' has to be positive")
+                                line_no,
+                                f"'{key_val[0]}' has to be positive.")
                     else:
-                        raise MetadataError(f"({line_no}), '{key_val[0]}' "
-                                            "is unknown metadata")
+                        raise MetadataError(line_no, f"'{key_val[0]}' "
+                                            "is unknown metadata.")
                 except IndexError:
-                    raise MetadataError(f"MetadataError: ({line_no}) "
-                                        f"metadata {info} is not properly "
-                                        "formatted")
+                    raise MetadataError(line_no,
+                                        f"Hub Metadata {info} is not properly "
+                                        "formatted.")
                 except MetadataError as e:
-                    raise MetadataError(f"MetadataError->{e}")
+                    raise MetadataError(line_no, f"{e}")
         # storage[hub_name].update({
         #     "zone": zone,
         #     "color": color,
@@ -370,15 +379,18 @@ class MapParser:
             # Checking for proper linking
             if len(links) == 1:
                 raise LinkingError(
-                    f"LinkError: ({line_no}), '{links[0]}' missing connection")
+                    line_no,
+                    f"'{links[0]}' missing connection.")
             elif len(links) == 2 and links[1].strip() == "":
                 raise LinkingError(
-                    f"LinkError: ({line_no}), '{links[0]}' missing "
-                    "connecting link")
+                    line_no,
+                    f"'{links[0]}' missing "
+                    "connecting link.")
             elif len(links) > 2:
                 raise LinkingError(
-                    f"LinkError: ({line_no}), '{links[0]}' value is not "
-                    "in proper format")
+                    line_no,
+                    f"'{links[0]}' value is not "
+                    "in proper format.")
 
             hub1 = links[0].strip()
             hub2 = links[1].strip()
@@ -390,20 +402,21 @@ class MapParser:
                 if ((hub1, hub2) in self.zone_connection or
                         (hub2, hub1) in self.zone_connection):
                     raise LinkingError(
-                        f"LinkError: ({line_no}), connection {hub1}-{hub2}"
-                        " already exists"
-                        )
+                        line_no,
+                        f"Connection '{hub1}-{hub2}' already exists.")
                 else:
                     self.zone_connection.append((hub1, hub2))
                     storage[hub1].add_link(storage[hub2], max_link_capacity)
                     # storage[hub2].add_link(storage[hub1], max_link_capacity)
             else:
                 raise LinkingError(
-                    f"LinkError: ({line_no}) link name {hub1}, {hub2} does "
-                    f"not exists in hub names {storage.keys()} ")
+                    line_no,
+                    f"Link name {hub1}, {hub2} does "
+                    f"not exists in hub names {storage.keys()}.")
         else:
             raise LinkingError(
-                f"LinkingError: ({line_no}) has improper formatting")
+                line_no,
+                "Link has improper formatting.")
 
     def _extract_max_link_capacity(self, line_no: int, metadata: str) -> int:
         """
@@ -418,8 +431,8 @@ class MapParser:
         if len(link_capacity) == 2:
             if link_capacity[0] != "max_link_capacity":
                 raise MaxLinkError(
-                    f"MaxLinkError: ({line_no}), '{link_capacity[0]}' "
-                    "unknown link capacity info"
+                    line_no,
+                    f"'{link_capacity[0]}' unknown link capacity info."
                 )
             try:
                 max_link = int(link_capacity[1].strip())
@@ -427,16 +440,16 @@ class MapParser:
                     return max_link
                 else:
                     raise MaxLinkError(
-                        f"MaxLinkError: ({line_no}) {link_capacity[0]} "
-                        "has to be positive")
+                        line_no,
+                        f"{link_capacity[0]} has to be positive.")
             except ValueError:
                 raise MaxLinkError(
-                    f"MaxLinkError: ({line_no}) {link_capacity[0]} has "
-                    "to be integer")
+                    line_no,
+                    f"{link_capacity[0]} has to be integer.")
         else:
             raise MaxLinkError(
-                f"MaxLinkError: ({line_no}) {link_capacity[0]} "
-                "has wrong formatting")
+                line_no,
+                f"{link_capacity[0]} has wrong formatting.")
 
 
 if __name__ == "__main__":

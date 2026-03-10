@@ -6,6 +6,7 @@ ENV_NAME = venv
 # CONFIG = config.txt
 WORK_DIR = srcs
 DEBUGGER = pdb
+MAP = default_map.txt
 ALL_CACHE = $(shell find . -path "./.venv" -prune -o -name "__pycache__" -print -o -name ".mypy_cache" -print)
 VENV_PATH = $(shell find . -type d -name ".$(ENV_NAME)" -print)
 
@@ -29,7 +30,7 @@ run:
 	@if [ ! -d ".$(ENV_NAME)" ]; then \
 		make install;\
 	fi
-	$(ENV) run $(PYTHON) $(MAIN)
+	$(ENV) run $(PYTHON) $(MAIN) $(MAP)
 
 debug:
 	@if [ ! -d ".$(ENV_NAME)" ]; then \

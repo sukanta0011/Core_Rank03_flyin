@@ -20,6 +20,7 @@ FLYIN is a discrete-event simulation designed to optimize drone swarm throughput
 ## Introduction:
 Prerequisites
 Python 3.10+
+UV: to manage dependencies.
 
 MiniLibX dependencies (X11/Metal)
 ```txt
@@ -27,21 +28,16 @@ mlx-2.2-py3-none-any.whl
 ```
 
 #### Installation & Execution
+Makefile is provided to handle installation and execution easy.
 ```bash
 # Setup virtual environment and install dependencies (webcolors, etc.)
 make install 
 # Execute the simulation with the default map
-make run 
+make run MAP=path_of_the_map
+# Example: make run MAP=maps/easy/01_linear_path.txt
 # Full cleanup of environment and cache
 make fclean
 ```
-
-#### Map Configuration
-To test different maps, modify the file_path in flyin.py present at root directory:
-```python
-file_path = "maps/easy/03_basic_capacity.txt"
-```
-
 
 ## Resource:
 - DSA: https://www.w3schools.com/dsa/index.php

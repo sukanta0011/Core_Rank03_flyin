@@ -1,7 +1,8 @@
 class MapError(Exception):
     """Base class for all exceptions raised during map parsing and
     validation."""
-    pass
+    def __init__(self, line_no: int, msg: str) -> None:
+        super().__init__(f"Line {line_no}: {msg}" if line_no > 0 else msg)
 
 
 class DroneNumError(MapError):
