@@ -47,20 +47,21 @@ make fclean
 - Algorithms: https://medium.com/omarelgabrys-blog/path-finding-algorithms-f65a8902eb40
 
 ## Algorithm
-1. Pathfinding StrategyThe system utilizes Depth-First Search (DFS) to map all viable routes, calculating a custom "Weighted Cost" for each:$$\text{{Cost}} = \frac{\text{Zone Cost}}{\min(\text{Zone Capacity}, \text{Link Capacity})}$$
+1. Pathfinding StrategyThe system utilizes Depth-First Search (DFS) to map all viable routes, calculating a custom "Weighted Cost" for each:
+   $$\text{{Cost}} = \frac{\text{Zone Cost}}{\min(\text{Zone Capacity}, \text{Link Capacity})}$$
 
     Routes are then sorted via a Multi-Level Priority Queue:
     1. **Type-Specific Priority:** Priority zones are moved to the top of the routing table.
     2. **Efficiency Sort:** Paths are secondary-sorted by the calculated weighted cost.
 
-2. The "Transaction" Movement Algorithm
+3. The "Transaction" Movement Algorithm
     To solve the "Order Bias" and "Throughput" challenges, the movement logic follows a Three-Phase 
     Atomic Update:
     1. **Predictive Clearing (Look-Ahead):** Identifies zones that will be vacated in the current tick, enabling "tailgating" (drones moving into a spot exactly as another leaves).
     2. **Pessimistic Reservation:** When a drone enters a link, it immediately populates the link AND reserves capacity at the target hub. This prevents "Race Conditions" where two drones might target the same spot from different links.
     3. **Commit Phase:** Once the travel cost is met, the link is freed, and the drone's position is formally updated to the hub.
 
-## Visual Representation & Graphics EngineThe
+## Visual Representation & Graphics Engine
 Visualization is built on a custom Double-Buffered Rendering Pipeline using the MiniLibX library. Rather than using high-level draw calls that are CPU-intensive in Python, the engine interacts directly with the Frame Buffer to ensure smooth performance even with a high number of active agents.
 
 1. **The Rendering Pipeline (Atomic Frame Updates)**
