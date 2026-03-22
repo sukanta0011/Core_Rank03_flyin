@@ -17,6 +17,8 @@ FLYIN is a discrete-event simulation designed to optimize drone swarm throughput
   3: Pause simulation.
   4: Terminate visualizer.
 
+![](https://github.com/sukanta0011/Core_Rank03_flyin/blob/main/screenshots/flyim.gif)
+
 ## Introduction:
 Prerequisites
 Python 3.10+

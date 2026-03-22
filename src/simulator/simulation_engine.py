@@ -296,11 +296,15 @@ class AdvanceSimulator(Simulator):
                         drone.waiting_time = 0
                         break
                     elif link.free_spaces() > 0:
-                        if link.free_spaces() <= link.target.free_spaces():
+                        if min(link.free_spaces(),
+                               link.target.free_spaces()) > 0:
+                            if link.target.name in zone_to_be_freed:
+                                zone_to_be_freed.remove(link.target.name)
                             self._set_drone_params(link, drone)
                             break
                         elif link.target.name in zone_to_be_freed:
-                            zone_to_be_freed.remove(link.target.name)
+                            if link.target.name in zone_to_be_freed:
+                                zone_to_be_freed.remove(link.target.name)
                             self._set_drone_params(link, drone)
                             break
 

@@ -1,26 +1,36 @@
-# Easy Level 2: Simple fork with two paths
-nb_drones: 10
+# Stress Test: Multi-path bottleneck with priority bypass
+nb_drones: 20
 
+# Hubs: Name X Y [Attributes]
 start_hub: start 0 0 [color=green]
-hub: junction 1 0 [color=yellow max_drones=3]
-hub: hor 1 -1 [color=blue]
-hub: path_blk 1 1 [color=blue]
-hub: path_a 2 1 [color=blue zone=restricted max_drones=2]
-hub: path_b 2 -1 [color=blue max_drones=2]
-hub: path_c 2 -2 [color=blue zone=priority]
-hub: long_a 2 -3 [color=blue zone=priority]
-hub: long_b 3 0 [color=blue zone=restricted]
-end_hub: goal 4 0 [color=red]
+hub: north_gate 1 1 [color=yellow max_drones=5]
+hub: south_gate 1 -1 [color=yellow max_drones=5]
+hub: central_hub 2 0 [color=blue max_drones=2 zone=restricted]
+hub: n_express 2 2 [color=blue zone=priority]
+hub: s_express 2 -2 [color=blue zone=priority]
+hub: n_exit 3 1 [color=blue max_drones=4]
+hub: s_exit 3 -1 [color=blue max_drones=4]
+hub: detour_blk 2 1 [color=red]
+end_hub: goal 5 0 [color=red]
 
-connection: start-junction [max_link_capacity=2]
-connection: junction-path_a [max_link_capacity=3]
-connection: path_a-path_blk
-connection: junction-hor
-connection: junction-path_b [max_link_capacity=2]
-connection: junction-path_c
-connection: junction-long_a
-connection: long_a-long_b
-connection: path_a-goal [max_link_capacity=3]
-connection: path_b-goal [max_link_capacity=2]
-connection: path_c-goal
-connection: long_b-goal
+# Connections: From-To [Attributes]
+# The Central Bottleneck (Shortest but tight)
+connection: start-central_hub [max_link_capacity=1]
+connection: central_hub-goal [max_link_capacity=1]
+
+# North Path (High Capacity)
+connection: start-north_gate [max_link_capacity=10]
+connection: north_gate-n_express [max_link_capacity=10]
+connection: n_express-n_exit [max_link_capacity=10]
+connection: n_exit-goal [max_link_capacity=5]
+
+# South Path (Restricted Flow)
+connection: start-south_gate [max_link_capacity=3]
+connection: south_gate-s_express [max_link_capacity=3]
+connection: s_express-s_exit [max_link_capacity=3]
+connection: s_exit-goal [max_link_capacity=3]
+
+# Cross-Link (Testing DFS cycles and redirection)
+connection: north_gate-detour_blk [max_link_capacity=1]
+connection: detour_blk-central_hub [max_link_capacity=1]
+connection: south_gate-central_hub [max_link_capacity=2]

@@ -29,8 +29,8 @@ class ConstantParameters:
         self.x_offset = 100
         self.y_offset = 200
         self.y_cent = 200
-        self.fractional_move = 0.05
-        self.win_w = 900
+        self.fractional_move = 0.02
+        self.win_w = 1000
         self.win_h = 400
         self.header_bg = 0xff2ebdca
 
